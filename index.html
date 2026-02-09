@@ -2,19 +2,26 @@
 <html lang="en" dir="ltr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Spotify Backup Pro</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- Fonts --- */
+        /* --- Typography --- */
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;500;700;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;500;700;900&display=swap');
 
         :root {
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(20, 20, 20, 0.6);
             --neon-green: #1DB954;
         }
 
@@ -22,36 +29,33 @@
             font-family: 'Outfit', sans-serif;
             background-color: #000;
             overflow-x: hidden;
-            direction: ltr; /* Force LTR layout always */
+            color: white;
+            overscroll-behavior-y: none;
         }
         
         .font-fa { font-family: 'Vazirmatn', sans-serif; }
         .font-zh { font-family: 'Noto Sans SC', sans-serif; }
 
-        /* --- Aurora Background Animation --- */
-        .aurora-bg {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-            background: radial-gradient(circle at 10% 20%, rgb(29, 185, 84, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 90% 80%, rgb(80, 50, 200, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 50% 50%, rgb(0, 0, 0) 0%, rgb(10, 10, 10) 100%);
-            animation: pulseBg 10s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulseBg {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
-        }
-
-        /* --- Premium Glass Effect --- */
-        .glass-card {
-            background: var(--glass-surface);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+        /* --- Ultra Glass Theme --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .glass-btn:active { transform: scale(0.98); }
 
         .glass-input {
             background: rgba(0, 0, 0, 0.3);
@@ -60,423 +64,501 @@
         }
         .glass-input:focus {
             border-color: var(--neon-green);
-            background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 0 15px rgba(29, 185, 84, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(29, 185, 84, 0.15);
         }
 
-        /* --- Buttons --- */
-        .btn-primary {
-            background: linear-gradient(135deg, #1DB954 0%, #178a3f 100%);
-            box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* --- Tab System --- */
+        .tab-btn {
+            position: relative;
+            color: #888;
+            transition: all 0.3s;
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(29, 185, 84, 0.5);
+        .tab-btn.active {
+            color: white;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
-        .btn-primary:active { transform: translateY(0); }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--neon-green);
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* --- Toast Notification --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            pointer-events: none;
+            width: 90%;
+            max-width: 400px;
         }
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
+        .toast {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-left: 4px solid var(--neon-green);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
         }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.info { border-left-color: #3b82f6; }
 
-        /* --- Scrollbar --- */
+        /* --- Aurora Background --- */
+        .aurora {
+            position: fixed; inset: 0; z-index: -1;
+            background: 
+                radial-gradient(at 0% 0%, hsla(143,73%,35%,0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(260,100%,60%,0.1) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, #000000 0%, #0a0a0a 100%);
+        }
+        
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
-
-        /* --- Modal Animation --- */
-        .modal-enter { opacity: 0; transform: scale(0.95); }
-        .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s ease-out; }
     </style>
 </head>
-<body class="text-white min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-300">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-300 selection:bg-green-500/30">
 
-    <div class="aurora-bg"></div>
+    <div class="aurora"></div>
 
-    <!-- Navigation Bar -->
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Navigation -->
     <nav class="absolute top-0 w-full p-6 flex justify-between items-center z-20 max-w-7xl mx-auto">
         <div class="flex items-center gap-3">
-            <i class="fab fa-spotify text-3xl text-[#1DB954]"></i>
-            <span class="font-bold text-xl tracking-wider hidden md:block">BACKUP<span class="text-[#1DB954]">PRO</span></span>
+            <i class="fab fa-spotify text-3xl text-[#1DB954] drop-shadow-[0_0_15px_rgba(29,185,84,0.4)]"></i>
+            <span class="font-bold text-xl tracking-wider hidden md:block opacity-90">BACKUP<span class="text-[#1DB954]">PRO</span></span>
         </div>
         
-        <div class="flex gap-3">
-            <!-- Help Trigger -->
-            <button onclick="toggleHelp()" class="glass-card px-4 py-2 rounded-full flex items-center gap-2 hover:bg-white/10 transition text-sm font-bold">
-                <i class="fas fa-question-circle text-[#1DB954]"></i>
-                <span data-i18n="nav-help">Help Guide</span>
+        <div class="flex gap-3 relative">
+            <!-- Install PWA Button -->
+            <button id="install-btn" class="glass-btn px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold hidden text-[#1DB954]">
+                <i class="fas fa-download"></i> <span data-i18n="nav-install">Install</span>
             </button>
 
-            <!-- Lang Switcher -->
-            <div class="relative group">
-                <button class="glass-card w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition">
+            <!-- Help Button -->
+            <button onclick="toggleHelp()" class="glass-btn px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold">
+                <i class="fas fa-question-circle text-[#1DB954]"></i> <span data-i18n="nav-help">Guide</span>
+            </button>
+
+            <!-- Language Toggle -->
+            <div class="relative">
+                <button onclick="toggleLangMenu(event)" class="glass-btn w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-white">
                     <i class="fas fa-globe"></i>
                 </button>
-                <div class="absolute right-0 mt-2 w-32 glass-card rounded-xl overflow-hidden hidden group-hover:block animate-fade-in z-50">
-                    <div onclick="setLanguage('en')" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-sm text-left">English</div>
-                    <div onclick="setLanguage('fa')" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-sm font-fa text-right">فارسی</div>
-                    <div onclick="setLanguage('zh')" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-sm font-zh text-right">中文</div>
+                
+                <!-- Fixed Dropdown: Compact & Tidy -->
+                <div id="lang-menu" class="absolute right-0 mt-3 w-32 glass-panel rounded-xl overflow-hidden hidden z-50 flex flex-col shadow-2xl origin-top-right transform transition-all duration-200">
+                    <button onclick="setLanguage('en')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left">
+                        <span class="w-4 text-center text-sm">🇺🇸</span> English
+                    </button>
+                    <button onclick="setLanguage('fa')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left font-fa">
+                        <span class="w-4 text-center text-sm">🇮🇷</span> فارسی
+                    </button>
+                    <button onclick="setLanguage('zh')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left font-zh">
+                        <span class="w-4 text-center text-sm">🇨🇳</span> 中文
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Card -->
-    <main class="w-full max-w-2xl relative z-10 mt-16 md:mt-0">
+    <!-- Main App Container -->
+    <main class="w-full max-w-xl relative z-10 mt-16 md:mt-0">
         
-        <!-- View 1: Connect -->
-        <div id="connect-view" class="glass-card p-8 md:p-12 rounded-3xl transition-all duration-500">
-            <div class="text-center mb-10">
-                <h1 class="text-4xl md:text-5xl font-black mb-4 tracking-tight" data-i18n="hero-title" dir="auto">Secure Your Music</h1>
-                <p class="text-gray-400 text-lg" data-i18n="hero-subtitle" dir="auto">Backup your entire Spotify library into a portable JSON file.</p>
+        <!-- Screen 1: Login -->
+        <div id="connect-view" class="glass-panel p-8 md:p-10 rounded-[2rem] fade-in">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black mb-3 tracking-tight text-white" data-i18n="hero-title" dir="auto">Spotify Backup</h1>
+                <p class="text-gray-400 text-sm md:text-base leading-relaxed" data-i18n="hero-subtitle" dir="auto">Export your library or Restore to a new account.</p>
             </div>
 
-            <div class="space-y-6">
-                <div class="relative">
-                    <label class="block text-xs font-bold text-[#1DB954] uppercase tracking-widest mb-2 ml-1" data-i18n="input-label" dir="auto">Client ID</label>
-                    <!-- UPDATED: Changed text-lg to text-base and added placeholder:text-sm -->
-                    <input type="text" id="clientId" data-i18n-ph="input-ph" placeholder="Enter your Client ID here..." class="glass-input w-full rounded-2xl p-5 text-white text-base placeholder:text-sm outline-none placeholder-gray-600 font-mono text-left" dir="ltr">
-                    <i class="fas fa-key absolute right-5 top-[42px] text-gray-500"></i>
+            <div class="space-y-5">
+                <div class="relative group">
+                    <label class="block text-[10px] font-bold text-[#1DB954] uppercase tracking-widest mb-2 ml-1 opacity-80" data-i18n="input-label" dir="auto">Client ID</label>
+                    <input type="text" id="clientId" class="glass-input w-full rounded-2xl p-4 text-white text-base placeholder:text-gray-600 placeholder:text-sm outline-none font-mono text-left" dir="ltr" placeholder="Paste Client ID...">
+                    <i class="fas fa-key absolute right-5 top-[38px] text-gray-500 group-focus-within:text-[#1DB954] transition"></i>
                 </div>
 
-                <button onclick="loginSpotifyPKCE()" class="btn-primary w-full py-5 rounded-2xl font-bold text-xl text-white flex items-center justify-center gap-3">
-                    <span data-i18n="btn-connect">Connect Spotify</span>
+                <button onclick="loginSpotifyPKCE()" class="w-full bg-[#1DB954] hover:bg-[#169c46] text-black font-extrabold text-lg py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(29,185,84,0.3)] hover:shadow-[0_0_30px_rgba(29,185,84,0.5)] active:scale-[0.98] flex items-center justify-center gap-3">
+                    <span data-i18n="btn-connect">Connect Account</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
-                
-                <p class="text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-white transition" onclick="toggleHelp()" data-i18n="help-hint" dir="auto">Don't have a Client ID? Click here.</p>
             </div>
         </div>
 
-        <!-- View 2: Backup Dashboard (Hidden) -->
-        <div id="dashboard-view" class="glass-card p-8 rounded-3xl hidden transition-all duration-500">
-            <!-- User Header -->
-            <div class="flex items-center gap-4 mb-8 border-b border-white/10 pb-6">
-                <img id="user-avatar" src="" class="w-16 h-16 rounded-full border-2 border-[#1DB954] shadow-[0_0_15px_rgba(29,185,84,0.4)] hidden">
-                <div>
-                    <div class="text-xs text-gray-400 uppercase tracking-widest" data-i18n="dash-welcome">Welcome Back</div>
-                    <div id="user-name" class="text-2xl font-bold text-white">User</div>
+        <!-- Screen 2: Dashboard -->
+        <div id="dashboard-view" class="glass-panel p-6 rounded-[2rem] hidden fade-in min-h-[500px] flex flex-col">
+            
+            <!-- User Info -->
+            <div class="flex items-center gap-4 mb-6 border-b border-white/5 pb-6">
+                <img id="user-avatar" src="" class="w-14 h-14 rounded-full border border-white/20 shadow-lg object-cover hidden">
+                <div class="flex-1 min-w-0">
+                    <div class="text-[10px] text-[#1DB954] font-bold uppercase tracking-widest mb-1" data-i18n="dash-welcome">Connected As</div>
+                    <div id="user-name" class="text-xl font-bold text-white truncate">User</div>
                 </div>
-                <div class="ml-auto flex gap-2">
-                    <div class="text-center bg-white/5 p-2 rounded-lg min-w-[80px]">
-                        <div class="text-xs text-gray-400" data-i18n="stat-list">Playlists</div>
-                        <div id="playlist-count" class="font-bold text-[#1DB954] text-xl">0</div>
+                <button onclick="logout()" class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10" title="Logout">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex mb-6 border-b border-white/5 px-2">
+                <button onclick="switchTab('backup')" id="tab-backup" class="tab-btn active flex-1 pb-4 text-sm font-bold flex justify-center gap-2">
+                    <i class="fas fa-cloud-download-alt"></i> <span data-i18n="tab-backup">Backup</span>
+                </button>
+                <button onclick="switchTab('restore')" id="tab-restore" class="tab-btn flex-1 pb-4 text-sm font-bold flex justify-center gap-2">
+                    <i class="fas fa-cloud-upload-alt"></i> <span data-i18n="tab-restore">Restore</span>
+                </button>
+            </div>
+
+            <!-- Tab Content: BACKUP -->
+            <div id="view-backup" class="flex-1 flex flex-col gap-4">
+                <div class="bg-white/5 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-gray-400" data-i18n="stat-list">Total Playlists</div>
+                        <div id="playlist-count" class="text-2xl font-bold text-white">0</div>
+                    </div>
+                    <i class="fab fa-spotify text-3xl text-white/10"></i>
+                </div>
+                
+                <div id="console-backup" class="flex-1 bg-black/40 rounded-xl p-4 font-mono text-xs text-green-400/80 border border-white/5 overflow-y-auto max-h-40 text-left" dir="ltr">
+                    >> Ready to backup...
+                </div>
+
+                <div class="flex gap-3 mt-auto">
+                    <button id="start-btn" onclick="startBackup()" class="flex-1 glass-btn py-3 rounded-xl font-bold text-sm text-white hover:bg-[#1DB954]/20 hover:border-[#1DB954] transition">
+                        <span data-i18n="btn-start">Start Backup</span>
+                    </button>
+                    <button id="download-btn" onclick="downloadJSON()" class="flex-1 bg-white/5 text-gray-500 py-3 rounded-xl font-bold text-sm cursor-not-allowed border border-transparent transition" disabled>
+                        <span data-i18n="btn-download">Download JSON</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content: RESTORE -->
+            <div id="view-restore" class="hidden flex-1 flex flex-col gap-4">
+                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                    <p class="text-[11px] text-yellow-200/80 leading-relaxed" data-i18n="restore-warn" dir="auto">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Restoration creates new playlists. It may take time due to Spotify limits. Keep this tab open.
+                    </p>
+                </div>
+
+                <!-- File Upload Area -->
+                <div class="relative border-2 border-dashed border-white/10 rounded-2xl p-6 text-center hover:border-[#1DB954]/50 transition cursor-pointer group" onclick="document.getElementById('file-upload').click()">
+                    <input type="file" id="file-upload" accept=".json" class="hidden" onchange="handleFileSelect(event)">
+                    <div id="upload-placeholder">
+                        <i class="fas fa-file-upload text-3xl text-gray-500 mb-2 group-hover:text-[#1DB954] transition"></i>
+                        <div class="text-xs text-gray-400 font-bold" data-i18n="upload-text">Click to upload JSON</div>
+                    </div>
+                    <div id="file-info" class="hidden">
+                        <i class="fas fa-check-circle text-3xl text-[#1DB954] mb-2"></i>
+                        <div id="filename-display" class="text-xs text-white font-bold truncate">filename.json</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Action Area -->
-            <div class="space-y-4">
-                <div id="console-log" class="bg-black/40 rounded-xl p-4 h-48 overflow-y-auto font-mono text-xs text-green-400/80 border border-white/5 shadow-inner text-left" dir="ltr">
-                    <span class="text-gray-600">>> System Ready...</span>
+                <div id="console-restore" class="flex-1 bg-black/40 rounded-xl p-4 font-mono text-xs text-blue-400/80 border border-white/5 overflow-y-auto max-h-40 text-left" dir="ltr">
+                    >> Waiting for file...
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button id="start-btn" onclick="startBackup()" class="btn-secondary py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 hover:bg-[#1DB954]/20 hover:border-[#1DB954]">
-                        <i class="fas fa-play"></i> <span data-i18n="btn-start">Start Backup</span>
-                    </button>
-                    <button id="download-btn" onclick="downloadJSON()" class="bg-white/5 text-gray-500 py-4 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2 border border-transparent" disabled>
-                        <i class="fas fa-download"></i> <span data-i18n="btn-download">Download JSON</span>
-                    </button>
-                </div>
+                <button id="restore-btn" onclick="startRestore()" class="w-full bg-white/5 text-gray-500 py-4 rounded-xl font-bold text-sm cursor-not-allowed transition" disabled>
+                    <span data-i18n="btn-start-restore">Start Restoration</span>
+                </button>
             </div>
+
         </div>
     </main>
 
-    <!-- Help Modal (Overlay) -->
+    <!-- Help Modal -->
     <div id="help-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 text-left" dir="ltr">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleHelp()"></div>
-        <div class="glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl relative z-10 p-8 modal-enter">
-            <button onclick="toggleHelp()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition"><i class="fas fa-times text-2xl"></i></button>
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="toggleHelp()"></div>
+        <div class="glass-panel w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl relative z-10 p-8 transform scale-95 transition-transform duration-300">
+            <button onclick="toggleHelp()" class="absolute top-6 right-6 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
             
-            <h2 class="text-3xl font-bold mb-6 flex items-center gap-3">
-                <i class="fas fa-book-open text-[#1DB954]"></i>
-                <span data-i18n="guide-title" dir="auto">Setup Guide</span>
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-book text-[#1DB954]"></i>
+                <span data-i18n="guide-title">Setup Guide</span>
             </h2>
 
-            <div class="space-y-8">
+            <div class="space-y-6 relative">
                 <!-- Step 1 -->
                 <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-lg border border-[#1DB954]/50">1</div>
-                    <div class="w-full">
-                        <h3 class="font-bold text-lg mb-2" data-i18n="step1-title" dir="auto">Go to Developer Dashboard</h3>
-                        <p class="text-gray-400 text-sm mb-2" data-i18n="step1-desc" dir="auto">Log in to Spotify's developer portal and click "Create App".</p>
-                        <a href="https://developer.spotify.com/dashboard" target="_blank" class="inline-flex items-center gap-2 text-[#1DB954] text-sm hover:underline">
-                            developer.spotify.com <i class="fas fa-external-link-alt"></i>
-                        </a>
+                    <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-sm border border-[#1DB954]/30">1</div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-sm mb-1 text-white">Dashboard</h3>
+                        <p class="text-gray-400 text-xs mb-2">Create an App in Spotify Developer Dashboard.</p>
+                        <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-[#1DB954] text-xs font-bold hover:underline">Open Dashboard <i class="fas fa-external-link-alt text-[10px]"></i></a>
                     </div>
                 </div>
 
                 <!-- Step 2 -->
                 <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-lg border border-[#1DB954]/50">2</div>
-                    <div class="w-full">
-                        <h3 class="font-bold text-lg mb-2" data-i18n="step2-title" dir="auto">Set Redirect URI (Critical)</h3>
-                        <p class="text-gray-400 text-sm mb-3" data-i18n="step2-desc" dir="auto">Copy this EXACT link and paste it into the "Redirect URIs" field in your app settings.</p>
-                        
-                        <div class="relative group">
-                            <code id="redirect-display" class="block w-full bg-black/50 border border-white/10 rounded-lg p-3 font-mono text-xs text-gray-300 break-all">...</code>
-                            <button onclick="copyRedirect()" class="absolute right-2 top-2 bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-xs text-white transition">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                    <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-sm border border-[#1DB954]/30">2</div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-sm mb-1 text-white">Redirect URI</h3>
+                        <p class="text-gray-400 text-xs mb-2">Paste this URL into App Settings:</p>
+                        <div class="relative">
+                            <code id="redirect-display" class="block w-full bg-black/50 border border-white/10 rounded-lg p-3 font-mono text-[10px] text-gray-300 break-all">...</code>
+                            <button onclick="copyRedirect()" class="absolute right-2 top-2 text-white/50 hover:text-white"><i class="fas fa-copy"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Step 3 -->
                 <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-lg border border-[#1DB954]/50">3</div>
-                    <div class="w-full">
-                        <h3 class="font-bold text-lg mb-2" data-i18n="step3-title" dir="auto">Get Client ID</h3>
-                        <p class="text-gray-400 text-sm" data-i18n="step3-desc" dir="auto">Copy the "Client ID" from your dashboard settings and paste it into the main screen of this app.</p>
-                    </div>
-                </div>
-
-                <div class="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-xl flex items-start gap-3">
-                    <i class="fas fa-lightbulb text-yellow-500 mt-1"></i>
-                    <div>
-                        <h4 class="font-bold text-yellow-500 text-sm">Example Config</h4>
-                        <p class="text-xs text-yellow-200/70 mt-1">Name: My Backup<br>Redirect URI: <span class="font-mono text-white/50">YOUR_PAGE_URL</span></p>
+                    <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-sm border border-[#1DB954]/30">3</div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-sm mb-1 text-white">Client ID</h3>
+                        <p class="text-gray-400 text-xs">Copy Client ID and paste it in the login screen.</p>
                     </div>
                 </div>
             </div>
-
-            <button onclick="toggleHelp()" class="w-full mt-8 bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold text-sm transition" data-i18n="btn-got-it">I Understand</button>
+            
+            <button onclick="toggleHelp()" class="w-full mt-8 glass-btn py-3 rounded-xl font-bold text-sm text-white">Close Guide</button>
         </div>
     </div>
 
     <script>
-        // --- Internationalization (I18n) ---
+        // --- DATA & CONFIG ---
         const translations = {
             en: {
-                'nav-help': 'Setup Guide',
-                'hero-title': 'Secure Your Music',
-                'hero-subtitle': 'Backup your entire Spotify library into a portable JSON file.',
-                'input-label': 'Client ID',
-                'input-ph': 'Enter Client ID from Spotify Dashboard...',
-                'btn-connect': 'Connect Spotify',
-                'help-hint': "Don't have a Client ID? Click here.",
-                'guide-title': 'Setup Guide',
-                'step1-title': 'Create App',
-                'step1-desc': 'Log in to Spotify Dashboard and create a new app.',
-                'step2-title': 'Set Redirect URI',
-                'step2-desc': 'Copy this EXACT link into your App Settings > Redirect URIs.',
-                'step3-title': 'Get Client ID',
-                'step3-desc': 'Copy the Client ID and paste it on the home screen.',
-                'btn-got-it': 'Got it, let\'s go!',
-                'dash-welcome': 'Welcome Back',
-                'stat-list': 'Playlists',
-                'btn-start': 'Start Backup',
-                'btn-download': 'Download JSON',
-                'log-ready': 'System Ready...',
-                'log-start': 'Initializing backup sequence...',
-                'log-fetch': 'Fetching playlist index...',
-                'log-item': 'Processing: ',
-                'log-done': 'Backup complete. Ready to download.',
-                'alert-copy': 'Redirect URI copied to clipboard!'
+                'nav-install': 'Install App', 'nav-help': 'Guide',
+                'hero-title': 'Spotify Backup', 'hero-subtitle': 'Export your library or Restore to a new account.',
+                'input-label': 'Client ID', 'btn-connect': 'Connect Account',
+                'dash-welcome': 'Connected As', 'tab-backup': 'Backup', 'tab-restore': 'Restore',
+                'stat-list': 'Total Playlists', 'btn-start': 'Start Backup', 'btn-download': 'Download JSON',
+                'restore-warn': 'Restoration creates new playlists. It may take time due to Spotify API limits. Do not close this tab.',
+                'upload-text': 'Click to upload JSON file', 'btn-start-restore': 'Start Restoration',
+                'guide-title': 'Setup Guide', 'err-no-client': 'Please enter your Client ID',
+                'copied': 'Copied to clipboard!', 'login-err': 'Login Error. Check Client ID.'
             },
             fa: {
-                'nav-help': 'راهنمای نصب',
-                'hero-title': 'موسیقی‌ات را حفظ کن',
-                'hero-subtitle': 'از تمام پلی‌لیست‌های اسپاتیفای خود یک نسخه پشتیبان JSON بگیرید.',
-                'input-label': 'شناسه کلاینت (Client ID)',
-                'input-ph': 'شناسه را از داشبورد اسپاتیفای وارد کنید...',
-                'btn-connect': 'اتصال به اسپاتیفای',
-                'help-hint': 'شناسه کلاینت ندارید؟ اینجا کلیک کنید.',
-                'guide-title': 'راهنمای راه‌اندازی',
-                'step1-title': 'ساخت اپلیکیشن',
-                'step1-desc': 'وارد داشبورد اسپاتیفای شوید و یک App جدید بسازید.',
-                'step2-title': 'تنظیم آدرس بازگشت (مهم)',
-                'step2-desc': 'این لینک را دقیقاً کپی کنید و در بخش Redirect URIs تنظیمات قرار دهید.',
-                'step3-title': 'دریافت Client ID',
-                'step3-desc': 'کد Client ID را کپی کنید و در صفحه اصلی این برنامه وارد کنید.',
-                'btn-got-it': 'متوجه شدم',
-                'dash-welcome': 'خوش آمدید',
-                'stat-list': 'پلی‌لیست',
-                'btn-start': 'شروع بکاپ‌گیری',
-                'btn-download': 'دانلود فایل JSON',
-                'log-ready': 'سیستم آماده است...',
-                'log-start': 'آغاز فرآیند پشتیبان‌گیری...',
-                'log-fetch': 'در حال دریافت لیست پلی‌لیست‌ها...',
-                'log-item': 'پردازش: ',
-                'log-done': 'بکاپ کامل شد. آماده دانلود.',
-                'alert-copy': 'لینک کپی شد!'
+                'nav-install': 'نصب برنامه', 'nav-help': 'راهنما',
+                'hero-title': 'پشتیبان‌گیری اسپاتیفای', 'hero-subtitle': 'دریافت خروجی یا بازیابی در اکانت جدید.',
+                'input-label': 'شناسه کلاینت (Client ID)', 'btn-connect': 'اتصال حساب',
+                'dash-welcome': 'متصل شده با', 'tab-backup': 'بکاپ‌گیری', 'tab-restore': 'بازیابی',
+                'stat-list': 'تعداد پلی‌لیست', 'btn-start': 'شروع بکاپ', 'btn-download': 'دانلود JSON',
+                'restore-warn': 'بازیابی باعث ساخت پلی‌لیست‌های جدید می‌شود. به دلیل محدودیت اسپاتیفای ممکن است زمان‌بر باشد.',
+                'upload-text': 'برای انتخاب فایل JSON کلیک کنید', 'btn-start-restore': 'شروع عملیات بازیابی',
+                'guide-title': 'راهنمای راه‌اندازی', 'err-no-client': 'لطفاً شناسه کلاینت (Client ID) را وارد کنید',
+                'copied': 'کپی شد!', 'login-err': 'خطا در ورود. شناسه کلاینت را چک کنید.'
             },
             zh: {
-                'nav-help': '设置指南',
-                'hero-title': '保护您的音乐',
-                'hero-subtitle': '将您的 Spotify 音乐库备份为便携式 JSON 文件。',
-                'input-label': '客户端 ID (Client ID)',
-                'input-ph': '在此处输入客户端 ID...',
-                'btn-connect': '连接 Spotify',
-                'help-hint': '没有客户端 ID？点这里。',
-                'guide-title': '设置指南',
-                'step1-title': '创建应用',
-                'step1-desc': '登录 Spotify 仪表板并创建一个新应用。',
-                'step2-title': '设置重定向 URI (关键)',
-                'step2-desc': '复制此确切链接并将其粘贴到应用设置的 Redirect URIs 字段中。',
-                'step3-title': '获取客户端 ID',
-                'step3-desc': '复制 Client ID 并将其粘贴到主屏幕上。',
-                'btn-got-it': '明白了，开始吧！',
-                'dash-welcome': '欢迎回来',
-                'stat-list': '播放列表',
-                'btn-start': '开始备份',
-                'btn-download': '下载 JSON',
-                'log-ready': '系统就绪...',
-                'log-start': '初始化备份序列...',
-                'log-fetch': '正在获取播放列表索引...',
-                'log-item': '正在处理：',
-                'log-done': '备份完成。准备下载。',
-                'alert-copy': '重定向 URI 已复制！'
+                'nav-install': '安装应用', 'nav-help': '指南',
+                'hero-title': 'Spotify 备份', 'hero-subtitle': '导出您的音乐库或恢复到新帐户。',
+                'input-label': '客户端 ID', 'btn-connect': '连接帐户',
+                'dash-welcome': '已连接', 'tab-backup': '备份', 'tab-restore': '恢复',
+                'stat-list': '播放列表总数', 'btn-start': '开始备份', 'btn-download': '下载 JSON',
+                'restore-warn': '恢复将创建新的播放列表。由于 Spotify 限制，可能需要一些时间。',
+                'upload-text': '点击上传 JSON 文件', 'btn-start-restore': '开始恢复',
+                'guide-title': '设置指南', 'err-no-client': '请输入您的客户端 ID',
+                'copied': '已复制！', 'login-err': '登录错误。检查客户端 ID。'
             }
         };
 
-        // --- Core Logic ---
         let currentLang = localStorage.getItem('sp_lang') || 'en';
         let accessToken = null;
         let allData = { user: {}, playlists: [] };
+        let restoreData = null;
 
-        // Helper: Get Clean URL
+        // --- CORE UI ---
         const getRedirectUri = () => window.location.href.split('?')[0].split('#')[0];
 
-        // Init
         window.onload = async () => {
             setLanguage(currentLang);
             document.getElementById('redirect-display').textContent = getRedirectUri();
             
+            // Language Menu Click Outside
+            window.addEventListener('click', (e) => {
+                const menu = document.getElementById('lang-menu');
+                const btn = e.target.closest('button[onclick*="toggleLangMenu"]');
+                if (!btn && !menu.contains(e.target)) menu.classList.add('hidden');
+            });
+
             // Restore Client ID
             const savedId = localStorage.getItem('sp_client_id');
             if(savedId) document.getElementById('clientId').value = savedId;
 
-            // Handle Auth Return
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
+            // Auth Check
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
             if (code) await handleAuthCode(code);
+
+            // PWA Logic
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('install-btn');
+                btn.classList.remove('hidden');
+                btn.onclick = () => { e.prompt(); };
+            });
         };
 
-        // UI Functions
-        function toggleHelp() {
-            const modal = document.getElementById('help-modal');
-            const content = modal.querySelector('div.modal-enter');
-            
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                setTimeout(() => content.classList.add('modal-enter-active'), 10);
-            } else {
-                content.classList.remove('modal-enter-active');
-                setTimeout(() => modal.classList.add('hidden'), 200);
-            }
-        }
-
-        function copyRedirect() {
-            navigator.clipboard.writeText(getRedirectUri());
-            const btn = document.querySelector('button[onclick="copyRedirect()"]');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i>';
-            btn.classList.add('text-green-400');
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('text-green-400');
-            }, 2000);
+        function toggleLangMenu(e) {
+            e.stopPropagation();
+            document.getElementById('lang-menu').classList.toggle('hidden');
         }
 
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('sp_lang', lang);
             document.documentElement.lang = lang;
-            
-            // REMOVED: document.body.dir = ... to keep layout fixed
-            
-            // Update Fonts
+            document.getElementById('lang-menu').classList.add('hidden');
+
             document.body.classList.remove('font-fa', 'font-zh');
             if(lang === 'fa') document.body.classList.add('font-fa');
             if(lang === 'zh') document.body.classList.add('font-zh');
 
-            // Update Texts
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if(translations[lang][key]) el.innerText = translations[lang][key];
             });
-            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-                const key = el.getAttribute('data-i18n-ph');
-                if(translations[lang][key]) el.placeholder = translations[lang][key];
-            });
         }
 
-        function t(key) { return translations[currentLang][key] || key; }
+        // --- TOAST SYSTEM (New Feature) ---
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => toast.classList.add('show'));
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
-        function log(msg, type = 'info') {
-            const console = document.getElementById('console-log');
+        function toggleHelp() {
+            const modal = document.getElementById('help-modal');
+            const content = modal.querySelector('.glass-panel');
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => content.classList.replace('scale-95','scale-100'), 10);
+            } else {
+                content.classList.replace('scale-100','scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+            }
+        }
+        
+        function copyRedirect() {
+            navigator.clipboard.writeText(getRedirectUri());
+            showToast(translations[currentLang]['copied'], 'info');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            document.getElementById('view-backup').classList.add('hidden');
+            document.getElementById('view-restore').classList.add('hidden');
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('sp_client_id');
+            window.location.href = getRedirectUri();
+        }
+
+        function log(target, msg, type = 'info') {
+            const el = document.getElementById(target);
             const div = document.createElement('div');
-            div.className = `mb-1 ${type === 'error' ? 'text-red-400' : 'text-green-400/80'}`;
+            div.className = `mb-1 ${type === 'error' ? 'text-red-400' : (target === 'console-restore' ? 'text-blue-300' : 'text-green-300')}`;
             div.innerHTML = `> ${msg}`;
-            console.appendChild(div);
-            console.scrollTop = console.scrollHeight;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
         }
 
-        // --- PKCE Auth Flow ---
+        // --- AUTH (PKCE) ---
+        const SCOPES = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read playlist-modify-public playlist-modify-private';
+
         async function loginSpotifyPKCE() {
             const clientId = document.getElementById('clientId').value.trim();
-            if (!clientId) return alert("Please enter Client ID");
+            
+            // Check Empty Input & Show Toast
+            if(!clientId) {
+                showToast(translations[currentLang]['err-no-client'], 'error');
+                document.getElementById('clientId').focus();
+                return;
+            }
             
             localStorage.setItem('sp_client_id', clientId);
-            
+
             const verifier = generateRandomString(128);
             const challenge = await generateCodeChallenge(verifier);
             localStorage.setItem('pkce_verifier', verifier);
 
-            const params = new URLSearchParams({
-                response_type: 'code',
-                client_id: clientId,
-                scope: 'user-read-private playlist-read-private playlist-read-collaborative user-library-read',
-                redirect_uri: getRedirectUri(),
-                code_challenge_method: 'S256',
-                code_challenge: challenge
-            });
-
-            window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+            const url = `https://accounts.spotify.com/authorize?response_type=code&client_id=${clientId}&scope=${encodeURIComponent(SCOPES)}&redirect_uri=${encodeURIComponent(getRedirectUri())}&code_challenge_method=S256&code_challenge=${challenge}`;
+            window.location.href = url;
         }
 
         async function handleAuthCode(code) {
-            window.history.pushState({}, document.title, window.location.pathname);
+            window.history.replaceState({}, document.title, window.location.pathname);
             document.getElementById('connect-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            document.querySelector('nav').classList.add('hidden'); // Hide nav for cleaner view
-
+            
             const clientId = localStorage.getItem('sp_client_id');
             const verifier = localStorage.getItem('pkce_verifier');
 
             try {
                 const res = await fetch('https://accounts.spotify.com/api/token', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: new URLSearchParams({
-                        client_id: clientId,
-                        grant_type: 'authorization_code',
-                        code: code,
-                        redirect_uri: getRedirectUri(),
-                        code_verifier: verifier
+                        client_id: clientId, grant_type: 'authorization_code',
+                        code: code, redirect_uri: getRedirectUri(), code_verifier: verifier
                     })
                 });
 
                 if(!res.ok) throw new Error('Token Failed');
                 const data = await res.json();
                 accessToken = data.access_token;
-                
-                // Fetch User
-                const userRes = await fetch('https://api.spotify.com/v1/me', {
-                    headers: { 'Authorization': 'Bearer ' + accessToken }
-                });
-                const user = await userRes.json();
+
+                // Load User
+                const uRes = await fetch('https://api.spotify.com/v1/me', { headers: { 'Authorization': 'Bearer ' + accessToken } });
+                const user = await uRes.json();
                 allData.user = user;
-                
+
+                document.getElementById('dashboard-view').classList.remove('hidden');
                 document.getElementById('user-name').innerText = user.display_name;
                 if(user.images?.[0]) {
                     document.getElementById('user-avatar').src = user.images[0].url;
@@ -485,92 +567,167 @@
 
             } catch (e) {
                 console.error(e);
-                alert("Auth Error. Check Client ID/Redirect URI.");
-                location.href = getRedirectUri();
+                showToast(translations[currentLang]['login-err'], 'error');
+                document.getElementById('connect-view').classList.remove('hidden');
             }
         }
 
-        // --- Backup Logic ---
+        // --- BACKUP LOGIC ---
         async function startBackup() {
             const btn = document.getElementById('start-btn');
             btn.disabled = true;
             btn.classList.add('opacity-50');
-            
-            log(t('log-start'));
+            log('console-backup', 'Starting backup...');
 
             try {
-                // Fetch Playlists
-                log(t('log-fetch'));
+                // 1. Playlists
                 const playlists = await fetchAll('https://api.spotify.com/v1/me/playlists?limit=50');
                 document.getElementById('playlist-count').innerText = playlists.length;
-
-                // Fetch Tracks
-                for(const pl of playlists) {
-                    log(`${t('log-item')} ${pl.name}...`);
+                
+                // 2. Tracks
+                for (const pl of playlists) {
+                    log('console-backup', `Scanning: ${pl.name}...`);
                     const tracks = await fetchAll(pl.tracks.href);
                     
+                    const cleanTracks = tracks.map(t => t.track ? t.track.uri : null).filter(uri => uri);
+                    
                     allData.playlists.push({
-                        info: { name: pl.name, id: pl.id, desc: pl.description },
-                        tracks: tracks.map(t => ({
-                            name: t.track?.name,
-                            artist: t.track?.artists.map(a => a.name).join(', '),
-                            album: t.track?.album.name,
-                            uri: t.track?.uri
-                        })).filter(t => t.name)
+                        name: pl.name,
+                        description: pl.description || "Restored by Backup Pro",
+                        tracks: cleanTracks
                     });
                 }
-
-                log(t('log-done'));
+                
+                log('console-backup', 'Backup Complete!');
                 const dlBtn = document.getElementById('download-btn');
                 dlBtn.disabled = false;
                 dlBtn.classList.remove('cursor-not-allowed', 'bg-white/5', 'text-gray-500');
-                dlBtn.classList.add('btn-primary', 'text-white');
+                dlBtn.classList.add('bg-[#1DB954]', 'text-black', 'shadow-lg');
+                btn.disabled = false; btn.classList.remove('opacity-50');
 
             } catch (e) {
-                log(`Error: ${e.message}`, 'error');
-                btn.disabled = false;
+                log('console-backup', 'Error: ' + e.message, 'error');
             }
         }
 
+        function downloadJSON() {
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `spotify_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+        }
+
+        // --- RESTORE LOGIC ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    restoreData = JSON.parse(e.target.result);
+                    document.getElementById('upload-placeholder').classList.add('hidden');
+                    document.getElementById('file-info').classList.remove('hidden');
+                    document.getElementById('filename-display').innerText = file.name;
+                    
+                    const plCount = restoreData.playlists?.length || 0;
+                    log('console-restore', `File loaded. Found ${plCount} playlists.`);
+                    
+                    const btn = document.getElementById('restore-btn');
+                    btn.disabled = false;
+                    btn.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed');
+                    btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500');
+                    btn.innerText = `Restore ${plCount} Playlists`;
+
+                } catch (err) {
+                    showToast("Invalid JSON file", 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function startRestore() {
+            if(!restoreData || !restoreData.playlists) return;
+            const btn = document.getElementById('restore-btn');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            const userId = allData.user.id;
+            let count = 0;
+
+            for (const pl of restoreData.playlists) {
+                count++;
+                log('console-restore', `[${count}/${restoreData.playlists.length}] Creating: ${pl.name}...`);
+                
+                try {
+                    // 1. Create Playlist
+                    const createRes = await fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: pl.name,
+                            description: pl.description + " (Restored)",
+                            public: false
+                        })
+                    });
+
+                    if(!createRes.ok) {
+                         if(createRes.status === 429) {
+                            log('console-restore', 'Rate Limit! Waiting 5s...', 'error');
+                            await new Promise(r => setTimeout(r, 5000));
+                            continue;
+                         }
+                         throw new Error('Create failed');
+                    }
+
+                    const newPl = await createRes.json();
+
+                    // 2. Add Tracks (Batch of 100)
+                    const uris = pl.tracks;
+                    if(uris && uris.length > 0) {
+                        for (let i = 0; i < uris.length; i += 100) {
+                            const chunk = uris.slice(i, i + 100);
+                            await fetch(`https://api.spotify.com/v1/playlists/${newPl.id}/tracks`, {
+                                method: 'POST',
+                                headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ uris: chunk })
+                            });
+                            await new Promise(r => setTimeout(r, 200)); 
+                        }
+                    }
+                    log('console-restore', `Done: ${pl.name} (${uris.length} tracks)`);
+                    await new Promise(r => setTimeout(r, 1000));
+
+                } catch (err) {
+                    log('console-restore', `Failed: ${pl.name} - ${err.message}`, 'error');
+                }
+            }
+            
+            log('console-restore', '--- RESTORE COMPLETE ---');
+            btn.innerText = "Restoration Finished";
+        }
+
+        // --- UTILS ---
         async function fetchAll(url) {
             let items = [];
             let next = url;
             while(next) {
                 const res = await fetch(next, { headers: { 'Authorization': 'Bearer ' + accessToken } });
                 if(res.status === 429) {
-                    const wait = res.headers.get('Retry-After') || 2;
-                    log(`Rate limit! Waiting ${wait}s...`, 'error');
-                    await new Promise(r => setTimeout(r, wait * 1000));
+                    const w = res.headers.get('Retry-After') || 2;
+                    await new Promise(r => setTimeout(r, w * 1000));
                     continue;
                 }
-                const data = await res.json();
-                items.push(...data.items);
-                next = data.next;
+                const d = await res.json();
+                items.push(...d.items);
+                next = d.next;
             }
             return items;
         }
 
-        function downloadJSON() {
-            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `spotify_backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-        }
-
-        // Crypto Utils
-        function generateRandomString(length) {
-            let text = '';
-            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-            return text;
-        }
-        async function generateCodeChallenge(v) {
-            const d = new TextEncoder().encode(v);
-            const h = await crypto.subtle.digest('SHA-256', d);
-            return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-        }
+        function generateRandomString(l){let t='';const p='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';for(let i=0;i<l;i++)t+=p.charAt(Math.floor(Math.random()*p.length));return t}
+        async function generateCodeChallenge(v){const d=new TextEncoder().encode(v);const h=await crypto.subtle.digest('SHA-256',d);return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
     </script>
 </body>
 </html>
