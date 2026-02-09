@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- Fonts --- */
+        /* --- Same Styles as Before --- */
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap');
@@ -16,19 +16,15 @@
         .font-fa { font-family: 'Vazirmatn', sans-serif; }
         .font-zh { font-family: 'Noto Sans SC', sans-serif; }
 
-        /* --- Custom Styles --- */
-        /* Spotify Green */
         .sp-green { color: #1DB954; }
         .bg-sp-green { background-color: #1DB954; }
         .hover-sp-green:hover { background-color: #1ed760; }
         
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #1DB954; }
 
-        /* Glassmorphism Effect */
         .glass {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(12px);
@@ -45,7 +41,6 @@
             background: rgba(0, 0, 0, 0.6);
         }
 
-        /* Animated Background */
         body {
             background: linear-gradient(-45deg, #121212, #1a1a1a, #0d2e1c, #121212);
             background-size: 400% 400%;
@@ -100,14 +95,14 @@
                     <input type="text" id="clientId" placeholder="e.g., 4a2b3c..." class="glass-input w-full rounded-xl p-4 text-white outline-none transition placeholder-gray-500">
                 </div>
 
-                <button onclick="loginSpotify()" class="w-full bg-sp-green text-black font-bold text-lg py-4 rounded-full hover-sp-green transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-green-500/30">
+                <button onclick="loginSpotifyPKCE()" class="w-full bg-sp-green text-black font-bold text-lg py-4 rounded-full hover-sp-green transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-green-500/30">
                     <i class="fab fa-spotify text-2xl"></i>
                     <span data-i18n="login-btn">Connect with Spotify</span>
                 </button>
             </div>
         </section>
 
-        <!-- Step 2: Backup Controls (Hidden initially) -->
+        <!-- Step 2: Backup Controls -->
         <section id="backup-section" class="glass p-8 rounded-3xl shadow-2xl hidden transition-all duration-500">
             <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
                 <h2 class="text-2xl font-bold flex items-center">
@@ -150,7 +145,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <footer class="mt-16 text-gray-400 text-sm pb-8 flex items-center gap-2">
@@ -158,7 +152,7 @@
     </footer>
 
     <script>
-        // --- Internationalization (i18n) ---
+        // --- Translations ---
         const translations = {
             en: {
                 'header-title': 'Spotify Backup Tool',
@@ -258,6 +252,7 @@
             }
         };
 
+        // --- I18n Logic ---
         let currentLang = localStorage.getItem('sp_lang') || 'en';
         const langSelector = document.getElementById('lang-selector');
         langSelector.value = currentLang;
@@ -269,80 +264,71 @@
             document.body.dir = lang === 'fa' ? 'rtl' : 'ltr';
             document.body.className = document.body.className.replace(/font-\w+/, `font-${lang}`);
             
-            // Update direction-specific classes
             document.querySelectorAll('[data-i18n-dir]').forEach(el => {
                 const cls = el.getAttribute('data-i18n-dir');
                 const newCls = lang === 'fa' ? cls.replace('mr-', 'ml-').replace('ml-', 'mr-') : cls;
                 el.className = el.className.replace(/m[lr]-\d+/, newCls);
             });
 
-            // Update text content
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (translations[lang][key]) {
-                    el.innerHTML = translations[lang][key];
-                }
+                if (translations[lang][key]) el.innerHTML = translations[lang][key];
             });
             
-            // Update placeholders
              document.querySelectorAll('input[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
-                if (translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
+                if (translations[lang][key]) el.placeholder = translations[lang][key];
             });
         }
-
-        langSelector.addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-        });
-
-        // Helper for dynamic strings
+        langSelector.addEventListener('change', (e) => setLanguage(e.target.value));
         function t(key, params = {}) {
             let str = translations[currentLang][key] || key;
-            for (const [k, v] of Object.entries(params)) {
-                str = str.replace(`{${k}}`, v);
-            }
+            for (const [k, v] of Object.entries(params)) str = str.replace(`{${k}}`, v);
             return str;
         }
 
 
         // --- State Management ---
         let accessToken = null;
-        let allData = {
-            user: {},
-            backupDate: new Date().toISOString(),
-            playlists: []
-        };
+        let allData = { user: {}, backupDate: new Date().toISOString(), playlists: [] };
+
+        // --- PKCE Utils (The New Magic) ---
+        function generateRandomString(length) {
+            let text = '';
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            for (let i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return text;
+        }
+
+        async function generateCodeChallenge(codeVerifier) {
+            const data = new TextEncoder().encode(codeVerifier);
+            const digest = await window.crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
 
         // --- Initialization ---
-        window.onload = () => {
-            setLanguage(currentLang); // Apply initial language
+        window.onload = async () => {
+            setLanguage(currentLang);
             
-            // Display current URL for Redirect URI configuration
-            const currentUrl = window.location.href.split('#')[0];
+            // Clean URL for Display
+            const currentUrl = window.location.href.split('?')[0].split('#')[0];
             document.getElementById('current-url').textContent = currentUrl;
 
-            // Check if returning from Spotify Login
-            const hash = window.location.hash;
-            if (hash) {
-                const params = new URLSearchParams(hash.substring(1));
-                accessToken = params.get('access_token');
-                
-                if (accessToken) {
-                    // Switch sections
-                    document.getElementById('config-section').classList.add('hidden');
-                    document.getElementById('backup-section').classList.remove('hidden');
-                    log(t('log-welcome', {name: ''}), "text-green-400"); // Placeholder name until fetched
-                    fetchUserProfile();
-                    // Clear hash from URL
-                    window.history.pushState("", document.title, window.location.pathname + window.location.search);
-                }
-            }
-
-            // Restore Client ID input if saved
+            // Restore Client ID
             const savedClientId = localStorage.getItem('sp_client_id');
             if (savedClientId) document.getElementById('clientId').value = savedClientId;
+
+            // Check for Auth Code (PKCE Return)
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {
+                // We are back from Spotify! Now exchange code for token.
+                await exchangeCodeForToken(code);
+            }
         };
 
         function copyUrl() {
@@ -351,27 +337,91 @@
             alert(t('alert-copy'));
         }
 
-        // --- Authentication ---
-        function loginSpotify() {
+        // --- Authentication (PKCE Flow) ---
+        async function loginSpotifyPKCE() {
             const clientId = document.getElementById('clientId').value.trim();
-            const redirectUri = window.location.href.split('#')[0]; // Current page
+            const redirectUri = window.location.href.split('?')[0].split('#')[0];
 
             if (!clientId) {
                 alert(t('alert-no-client'));
                 return;
             }
-
-            // Save Client ID for next time
             localStorage.setItem('sp_client_id', clientId);
 
-            const scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read';
-            const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&show_dialog=true`;
+            // Generate PKCE Verifier
+            const codeVerifier = generateRandomString(128);
+            const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-            window.location.href = authUrl;
+            // Save verifier for later
+            localStorage.setItem('pkce_verifier', codeVerifier);
+
+            const scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read';
+            const args = new URLSearchParams({
+                response_type: 'code',
+                client_id: clientId,
+                scope: scope,
+                redirect_uri: redirectUri,
+                code_challenge_method: 'S256',
+                code_challenge: codeChallenge
+            });
+
+            window.location.href = 'https://accounts.spotify.com/authorize?' + args;
         }
 
-        // --- Logic: Fetching Data ---
-        
+        async function exchangeCodeForToken(code) {
+            const clientId = localStorage.getItem('sp_client_id');
+            const codeVerifier = localStorage.getItem('pkce_verifier');
+            const redirectUri = window.location.href.split('?')[0].split('#')[0];
+
+            if (!clientId || !codeVerifier) {
+                log("Error: Missing Client ID or Verifier.", "text-red-500");
+                return;
+            }
+
+            // Remove code from URL to clean up
+            window.history.pushState({}, document.title, window.location.pathname);
+
+            // Show loading
+            document.getElementById('config-section').classList.add('hidden');
+            document.getElementById('backup-section').classList.remove('hidden');
+            log(t('log-waiting'), "text-yellow-300");
+
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        client_id: clientId,
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: redirectUri,
+                        code_verifier: codeVerifier,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Token exchange failed');
+                }
+
+                const data = await response.json();
+                accessToken = data.access_token;
+                
+                log(t('log-welcome', {name: ''}), "text-green-400");
+                fetchUserProfile();
+
+            } catch (error) {
+                log("Error getting token: " + error.message, "text-red-500");
+                console.error(error);
+                // Show config again on error
+                document.getElementById('backup-section').classList.add('hidden');
+                document.getElementById('config-section').classList.remove('hidden');
+                alert("Login failed. Please check Client ID and Redirect URI.");
+            }
+        }
+
+        // --- Logic: Fetching Data (Same as before) ---
         async function fetchUserProfile() {
             try {
                 const res = await fetch('https://api.spotify.com/v1/me', {
@@ -386,9 +436,8 @@
                     img.src = user.images[0].url;
                     img.classList.remove('hidden');
                 }
-                // Clear previous welcome log and add new one with name
-                 const consoleDiv = document.getElementById('console-log');
-                 consoleDiv.innerHTML = ''; 
+                const consoleDiv = document.getElementById('console-log');
+                consoleDiv.innerHTML = ''; 
                 log(t('log-welcome', {name: user.display_name}), "text-white font-bold");
             } catch (err) {
                 log(t('log-error-profile') + err.message, "text-red-500");
@@ -403,24 +452,19 @@
             log(t('log-start'), "text-blue-400 font-bold");
             
             try {
-                // 1. Fetch All Playlists
                 log(t('log-fetch-playlists'), "text-yellow-300");
                 const playlists = await getAllItems('https://api.spotify.com/v1/me/playlists?limit=50');
                 
                 document.getElementById('playlist-count').textContent = playlists.length;
                 log(t('log-playlists-found', {count: playlists.length}), "text-green-400");
 
-                // 2. Fetch Tracks for each Playlist
                 let totalTracks = 0;
                 
                 for (let i = 0; i < playlists.length; i++) {
                     const pl = playlists[i];
                     log(t('log-fetch-tracks', {current: i+1, total: playlists.length, name: pl.name}));
-                    
-                    // Fetch tracks for this specific playlist
                     const tracks = await getAllItems(pl.tracks.href);
                     
-                    // Simplify data
                     const cleanTracks = tracks.map(item => {
                         if (!item.track) return null; 
                         return {
@@ -443,15 +487,12 @@
 
                     totalTracks += cleanTracks.length;
                     document.getElementById('track-count').textContent = totalTracks;
-                    
-                    // Scroll log to bottom
                     const consoleLog = document.getElementById('console-log');
                     consoleLog.scrollTop = consoleLog.scrollHeight;
                 }
 
                 log(t('log-done'), "text-green-400 font-bold");
                 
-                // Enable Download
                 const dlBtn = document.getElementById('download-btn');
                 dlBtn.disabled = false;
                 dlBtn.classList.remove('cursor-not-allowed', 'bg-white/10', 'text-gray-400');
@@ -459,24 +500,18 @@
 
             } catch (error) {
                 log(t('log-error-fatal') + error.message, "text-red-600 font-bold");
-                if (error.status === 401) {
-                    log(t('log-error-token'), "text-red-400");
-                }
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
-        // Generic function to handle Spotify Pagination
         async function getAllItems(url) {
             let items = [];
             let nextUrl = url;
-
             while (nextUrl) {
                 const response = await fetch(nextUrl, {
                     headers: { 'Authorization': 'Bearer ' + accessToken }
                 });
-
                 if (!response.ok) {
                     if (response.status === 429) {
                         const retryAfter = response.headers.get('Retry-After') || 2;
@@ -486,7 +521,6 @@
                     }
                     throw { message: `HTTP Error ${response.status}`, status: response.status };
                 }
-
                 const data = await response.json();
                 items = items.concat(data.items);
                 nextUrl = data.next; 
@@ -494,7 +528,6 @@
             return items;
         }
 
-        // --- Export & UI Utils ---
         function log(msg, classes = "text-gray-300") {
             const consoleDiv = document.getElementById('console-log');
             const entry = document.createElement('div');
