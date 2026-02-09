@@ -1,0 +1,520 @@
+!DOCTYPE html
+html lang=en class=scroll-smooth
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleSpotify Backup Tooltitle
+    script src=httpscdn.tailwindcss.comscript
+    link href=httpscdnjs.cloudflare.comajaxlibsfont-awesome6.0.0cssall.min.css rel=stylesheet
+    style
+         --- Fonts --- 
+        @import url('httpsfonts.googleapis.comcss2family=Vazirmatnwght@300;400;700&display=swap');
+        @import url('httpsfonts.googleapis.comcss2family=Interwght@300;400;700&display=swap');
+        @import url('httpsfonts.googleapis.comcss2family=Noto+Sans+SCwght@300;400;700&display=swap');
+
+        .font-en { font-family 'Inter', sans-serif; }
+        .font-fa { font-family 'Vazirmatn', sans-serif; }
+        .font-zh { font-family 'Noto Sans SC', sans-serif; }
+
+         --- Custom Styles --- 
+         Spotify Green 
+        .sp-green { color #1DB954; }
+        .bg-sp-green { background-color #1DB954; }
+        .hover-sp-greenhover { background-color #1ed760; }
+        
+         Custom Scrollbar 
+        -webkit-scrollbar { width 8px; }
+        -webkit-scrollbar-track { background rgba(255,255,255,0.1); border-radius 4px; }
+        -webkit-scrollbar-thumb { background rgba(255,255,255,0.3); border-radius 4px; }
+        -webkit-scrollbar-thumbhover { background #1DB954; }
+
+         Glassmorphism Effect 
+        .glass {
+            background rgba(255, 255, 255, 0.08);
+            backdrop-filter blur(12px);
+            -webkit-backdrop-filter blur(12px);
+            border 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .glass-input {
+            background rgba(0, 0, 0, 0.4);
+            border 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glass-inputfocus {
+            border-color #1DB954;
+            background rgba(0, 0, 0, 0.6);
+        }
+
+         Animated Background 
+        body {
+            background linear-gradient(-45deg, #121212, #1a1a1a, #0d2e1c, #121212);
+            background-size 400% 400%;
+            animation gradient 25s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position 0% 50%; }
+            50% { background-position 100% 50%; }
+            100% { background-position 0% 50%; }
+        }
+    style
+head
+body class=text-white min-h-screen flex flex-col items-center p-4 mdp-8 font-en transition-all duration-300
+
+    !-- Language Switcher --
+    div class=absolute top-4 right-4 z-50
+        select id=lang-selector class=glass px-3 py-2 rounded-lg text-sm outline-none cursor-pointer hoverbg-white20 transition
+            option value=enEnglishoption
+            option value=faفارسیoption
+            option value=zh中文option
+        select
+    div
+
+    !-- Header --
+    header class=w-full max-w-3xl mt-8 mb-8 text-center flex flex-col items-center
+        i class=fab fa-spotify text-7xl sp-green mb-4 drop-shadow-lg animate-pulsei
+        h1 class=text-5xl font-extrabold mb-2 tracking-tight data-i18n=header-titleSpotify Backup Toolh1
+        p class=text-gray-300 text-lg font-light data-i18n=header-descSecurely save all your playlists with a single click.p
+    header
+
+    !-- Main Container --
+    main class=w-full max-w-3xl space-y-8 relative z-10
+
+        !-- Step 1 Configuration --
+        section id=config-section class=glass p-8 rounded-3xl shadow-2xl transition-all duration-500
+            h2 class=text-2xl font-bold mb-6 border-b border-white10 pb-4 flex items-center
+                span class=bg-white20 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3 font-mono data-i18n-dir=mr-31span
+                span data-i18n=config-titleConnection Setupspan
+            h2
+            
+            div class=space-y-6
+                div class=bg-yellow-50020 border-l-4 border-yellow-500 p-5 text-yellow-100 rounded-xl backdrop-blur-md
+                    p class=font-bold flex items-center text-lg mb-2i class=fas fa-exclamation-triangle mr-2 data-i18n-dir=mr-2i span data-i18n=note-titleImportant Notespanp
+                    p class=mb-3 data-i18n=note-text-1You need to create an App in the a href=httpsdeveloper.spotify.comdashboard target=_blank class=underline hovertext-white font-boldSpotify Developer Dashboarda.p
+                    p class=mb-1 data-i18n=note-text-2In your App settings, add this exact URL to the strongRedirect URIsstrong sectionp
+                    code id=current-url class=block bg-black40 p-3 mt-2 rounded-lg select-all cursor-pointer text-green-400 font-mono text-sm break-all transition hoverbg-black60 onclick=copyUrl()code
+                    p class=text-xs text-yellow-30070 mt-2 text-right data-i18n=click-copy(Click URL to copy)p
+                div
+
+                div
+                    label class=block text-sm font-medium text-gray-300 mb-2 for=clientId data-i18n=client-id-labelClient ID (from Spotify Dashboard)label
+                    input type=text id=clientId placeholder=e.g., 4a2b3c... class=glass-input w-full rounded-xl p-4 text-white outline-none transition placeholder-gray-500
+                div
+
+                button onclick=loginSpotify() class=w-full bg-sp-green text-black font-bold text-lg py-4 rounded-full hover-sp-green transition transform hoverscale-[1.02] activescale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-green-50030
+                    i class=fab fa-spotify text-2xli
+                    span data-i18n=login-btnConnect with Spotifyspan
+                button
+            div
+        section
+
+        !-- Step 2 Backup Controls (Hidden initially) --
+        section id=backup-section class=glass p-8 rounded-3xl shadow-2xl hidden transition-all duration-500
+            div class=flex justify-between items-center mb-6 border-b border-white10 pb-4
+                h2 class=text-2xl font-bold flex items-center
+                    span class=bg-white20 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3 font-mono data-i18n-dir=mr-32span
+                    span data-i18n=backup-titleBackup Operationsspan
+                h2
+                div class=flex items-center gap-3 glass px-3 py-2 rounded-full
+                     img id=user-avatar src= class=w-8 h-8 rounded-full hidden border-2 border-green-500
+                     span id=user-name class=text-green-400 font-boldspan
+                div
+            div
+
+            div class=space-y-6
+                div class=flex flex-col mdflex-row gap-4
+                    button id=start-btn onclick=startBackup() class=flex-1 bg-blue-600 hoverbg-blue-500 text-white font-bold py-4 rounded-xl transition transform hoverscale-[1.02] activescale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-blue-50030
+                        i class=fas fa-cloud-download-alt text-xli
+                        span data-i18n=start-btnStart Fetching Dataspan
+                    button
+                    button id=download-btn onclick=downloadJSON() class=flex-1 bg-white10 text-gray-400 font-bold py-4 rounded-xl cursor-not-allowed flex items-center justify-center gap-3 transition backdrop-blur-md disabled
+                        i class=fas fa-file-download text-xli
+                        span data-i18n=download-btnDownload JSON Filespan
+                    button
+                div
+
+                !-- Progress Log --
+                div class=bg-black40 rounded-xl p-4 h-72 overflow-y-auto font-mono text-sm border border-white10 shadow-inner id=console-log
+                    div class=text-gray-500 italic data-i18n=log-waiting Waiting to start...div
+                div
+                
+                !-- Stats --
+                div class=grid grid-cols-2 gap-4 text-center
+                    div class=glass p-4 rounded-2xl
+                        div class=text-gray-400 text-sm mb-1 data-i18n=stats-playlistsPlaylists Founddiv
+                        div id=playlist-count class=text-3xl font-extrabold text-white0div
+                    div
+                    div class=glass p-4 rounded-2xl
+                        div class=text-gray-400 text-sm mb-1 data-i18n=stats-tracksTotal Tracksdiv
+                        div id=track-count class=text-3xl font-extrabold text-white0div
+                    div
+                div
+            div
+        section
+
+    main
+
+    footer class=mt-16 text-gray-400 text-sm pb-8 flex items-center gap-2
+        span data-i18n=footer-madeMade withspan i class=fas fa-heart text-red-500 animate-pulsei span data-i18n=footer-forfor music loversspan
+    footer
+
+    script
+         --- Internationalization (i18n) ---
+        const translations = {
+            en {
+                'header-title' 'Spotify Backup Tool',
+                'header-desc' 'Securely save all your playlists with a single click.',
+                'config-title' 'Connection Setup',
+                'note-title' 'Important Note',
+                'note-text-1' 'You need to create an App in the a href=httpsdeveloper.spotify.comdashboard target=_blank class=underline hovertext-white font-boldSpotify Developer Dashboarda.',
+                'note-text-2' 'In your App settings, add this exact URL to the strongRedirect URIsstrong section',
+                'client-id-label' 'Client ID (from Spotify Dashboard)',
+                'login-btn' 'Connect with Spotify',
+                'backup-title' 'Backup Operations',
+                'start-btn' 'Start Fetching Data',
+                'download-btn' 'Download JSON File',
+                'log-waiting' ' Waiting to start...',
+                'stats-playlists' 'Playlists Found',
+                'stats-tracks' 'Total Tracks',
+                'footer-made' 'Made with',
+                'footer-for' 'for music lovers',
+                'alert-copy' 'URL copied! Use it in Spotify Dashboard.',
+                'alert-no-client' 'Please enter Client ID.',
+                'log-welcome' 'Welcome, {name}. Ready to backup.',
+                'log-error-profile' 'Error fetching profile ',
+                'log-start' '--- Backup Started ---',
+                'log-fetch-playlists' 'Fetching playlists list...',
+                'log-playlists-found' '{count} playlists found.',
+                'log-fetch-tracks' '[{current}{total}] Fetching tracks for {name}...',
+                'log-done' '--- Backup Complete! ---',
+                'log-error-fatal' 'Fatal Error ',
+                'log-error-token' 'Token expired. Please refresh and log in again.',
+                'log-rate-limit' 'Rate limited! Waiting for {seconds} seconds...',
+                'log-downloaded' 'File downloaded.',
+                'click-copy' '(Click URL to copy)'
+            },
+            fa {
+                'header-title' 'ابزار پشتیبان‌گیری اسپاتیفای',
+                'header-desc' 'تمام پلی‌لیست‌های خود را با یک کلیک ذخیره کنید.',
+                'config-title' 'تنظیمات اتصال',
+                'note-title' 'نکته مهم',
+                'note-text-1' 'برای استفاده، باید یک App در a href=httpsdeveloper.spotify.comdashboard target=_blank class=underline hovertext-white font-boldپنل توسعه‌دهندگان اسپاتیفایa بسازید.',
+                'note-text-2' 'در تنظیمات App خود، آدرس زیر را دقیقاً در بخش strongRedirect URIsstrong وارد کنید',
+                'client-id-label' 'Client ID (از داشبورد اسپاتیفای)',
+                'login-btn' 'اتصال به حساب اسپاتیفای',
+                'backup-title' 'عملیات پشتیبان‌گیری',
+                'start-btn' 'شروع دریافت اطلاعات',
+                'download-btn' 'دانلود فایل JSON',
+                'log-waiting' ' منتظر شروع عملیات...',
+                'stats-playlists' 'پلی‌لیست‌های یافت شده',
+                'stats-tracks' 'مجموع آهنگ‌ها',
+                'footer-made' 'ساخته شده با',
+                'footer-for' 'برای عاشقان موسیقی',
+                'alert-copy' 'آدرس کپی شد! در داشبورد اسپاتیفای استفاده کنید.',
+                'alert-no-client' 'لطفاً Client ID را وارد کنید.',
+                'log-welcome' 'خوش آمدید، {name}. آماده شروع بکاپ.',
+                'log-error-profile' 'خطا در دریافت پروفایل ',
+                'log-start' '--- شروع عملیات بکاپ ---',
+                'log-fetch-playlists' 'در حال دریافت لیست پلی‌لیست‌ها...',
+                'log-playlists-found' '{count} پلی‌لیست پیدا شد.',
+                'log-fetch-tracks' '[{current}{total}] دریافت آهنگ‌های {name}...',
+                'log-done' '--- عملیات تمام شد! ---',
+                'log-error-fatal' 'خطای مرگبار ',
+                'log-error-token' 'توکن منقضی شده است. لطفاً صفحه را رفرش کنید و دوباره وارد شوید.',
+                'log-rate-limit' 'محدودیت سرعت! انتظار برای {seconds} ثانیه...',
+                'log-downloaded' 'فایل دانلود شد.',
+                'click-copy' '(برای کپی کلیک کنید)'
+            },
+            zh {
+                'header-title' 'Spotify 备份工具',
+                'header-desc' '一键安全保存您的所有播放列表。',
+                'config-title' '连接设置',
+                'note-title' '重要提示：',
+                'note-text-1' '您需要在 a href=httpsdeveloper.spotify.comdashboard target=_blank class=underline hovertext-white font-boldSpotify 开发者仪表板a 中创建一个应用。',
+                'note-text-2' '在您的应用设置中，将此确切的 URL 添加到 strongRedirect URIsstrong 部分：',
+                'client-id-label' 'Client ID (来自 Spotify 仪表板)',
+                'login-btn' '连接到 Spotify',
+                'backup-title' '备份操作',
+                'start-btn' '开始获取数据',
+                'download-btn' '下载 JSON 文件',
+                'log-waiting' ' 等待开始...',
+                'stats-playlists' '找到的播放列表',
+                'stats-tracks' '总曲目数',
+                'footer-made' '用',
+                'footer-for' '为音乐爱好者制作',
+                'alert-copy' 'URL 已复制！在 Spotify 仪表板中使用它。',
+                'alert-no-client' '请输入 Client ID。',
+                'log-welcome' '欢迎，{name}。准备备份。',
+                'log-error-profile' '获取个人资料时出错：',
+                'log-start' '--- 备份开始 ---',
+                'log-fetch-playlists' '正在获取播放列表列表...',
+                'log-playlists-found' '找到 {count} 个播放列表。',
+                'log-fetch-tracks' '[{current}{total}] 正在获取曲目：{name}...',
+                'log-done' '--- 备份完成！ ---',
+                'log-error-fatal' '致命错误：',
+                'log-error-token' '令牌已过期。请刷新并重新登录。',
+                'log-rate-limit' '速率受限！等待 {seconds} 秒...',
+                'log-downloaded' '文件已下载。',
+                'click-copy' '(点击 URL 复制)'
+            }
+        };
+
+        let currentLang = localStorage.getItem('sp_lang')  'en';
+        const langSelector = document.getElementById('lang-selector');
+        langSelector.value = currentLang;
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('sp_lang', lang);
+            document.documentElement.lang = lang;
+            document.body.dir = lang === 'fa'  'rtl'  'ltr';
+            document.body.className = document.body.className.replace(font-w+, `font-${lang}`);
+            
+             Update direction-specific classes
+            document.querySelectorAll('[data-i18n-dir]').forEach(el = {
+                const cls = el.getAttribute('data-i18n-dir');
+                const newCls = lang === 'fa'  cls.replace('mr-', 'ml-').replace('ml-', 'mr-')  cls;
+                el.className = el.className.replace(m[lr]-d+, newCls);
+            });
+
+             Update text content
+            document.querySelectorAll('[data-i18n]').forEach(el = {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+            
+             Update placeholders
+             document.querySelectorAll('input[data-i18n-placeholder]').forEach(el = {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+        }
+
+        langSelector.addEventListener('change', (e) = {
+            setLanguage(e.target.value);
+        });
+
+         Helper for dynamic strings
+        function t(key, params = {}) {
+            let str = translations[currentLang][key]  key;
+            for (const [k, v] of Object.entries(params)) {
+                str = str.replace(`{${k}}`, v);
+            }
+            return str;
+        }
+
+
+         --- State Management ---
+        let accessToken = null;
+        let allData = {
+            user {},
+            backupDate new Date().toISOString(),
+            playlists []
+        };
+
+         --- Initialization ---
+        window.onload = () = {
+            setLanguage(currentLang);  Apply initial language
+            
+             Display current URL for Redirect URI configuration
+            const currentUrl = window.location.href.split('#')[0];
+            document.getElementById('current-url').textContent = currentUrl;
+
+             Check if returning from Spotify Login
+            const hash = window.location.hash;
+            if (hash) {
+                const params = new URLSearchParams(hash.substring(1));
+                accessToken = params.get('access_token');
+                
+                if (accessToken) {
+                     Switch sections
+                    document.getElementById('config-section').classList.add('hidden');
+                    document.getElementById('backup-section').classList.remove('hidden');
+                    log(t('log-welcome', {name ''}), text-green-400);  Placeholder name until fetched
+                    fetchUserProfile();
+                     Clear hash from URL
+                    window.history.pushState(, document.title, window.location.pathname + window.location.search);
+                }
+            }
+
+             Restore Client ID input if saved
+            const savedClientId = localStorage.getItem('sp_client_id');
+            if (savedClientId) document.getElementById('clientId').value = savedClientId;
+        };
+
+        function copyUrl() {
+            const urlText = document.getElementById('current-url').innerText;
+            navigator.clipboard.writeText(urlText);
+            alert(t('alert-copy'));
+        }
+
+         --- Authentication ---
+        function loginSpotify() {
+            const clientId = document.getElementById('clientId').value.trim();
+            const redirectUri = window.location.href.split('#')[0];  Current page
+
+            if (!clientId) {
+                alert(t('alert-no-client'));
+                return;
+            }
+
+             Save Client ID for next time
+            localStorage.setItem('sp_client_id', clientId);
+
+            const scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read';
+            const authUrl = `httpsaccounts.spotify.comauthorizeclient_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&show_dialog=true`;
+
+            window.location.href = authUrl;
+        }
+
+         --- Logic Fetching Data ---
+        
+        async function fetchUserProfile() {
+            try {
+                const res = await fetch('httpsapi.spotify.comv1me', {
+                    headers { 'Authorization' 'Bearer ' + accessToken }
+                });
+                const user = await res.json();
+                allData.user = user;
+                
+                document.getElementById('user-name').textContent = user.display_name;
+                if(user.images && user.images.length  0) {
+                    const img = document.getElementById('user-avatar');
+                    img.src = user.images[0].url;
+                    img.classList.remove('hidden');
+                }
+                 Clear previous welcome log and add new one with name
+                 const consoleDiv = document.getElementById('console-log');
+                 consoleDiv.innerHTML = ''; 
+                log(t('log-welcome', {name user.display_name}), text-white font-bold);
+            } catch (err) {
+                log(t('log-error-profile') + err.message, text-red-500);
+            }
+        }
+
+        async function startBackup() {
+            const btn = document.getElementById('start-btn');
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            log(t('log-start'), text-blue-400 font-bold);
+            
+            try {
+                 1. Fetch All Playlists
+                log(t('log-fetch-playlists'), text-yellow-300);
+                const playlists = await getAllItems('httpsapi.spotify.comv1meplaylistslimit=50');
+                
+                document.getElementById('playlist-count').textContent = playlists.length;
+                log(t('log-playlists-found', {count playlists.length}), text-green-400);
+
+                 2. Fetch Tracks for each Playlist
+                let totalTracks = 0;
+                
+                for (let i = 0; i  playlists.length; i++) {
+                    const pl = playlists[i];
+                    log(t('log-fetch-tracks', {current i+1, total playlists.length, name pl.name}));
+                    
+                     Fetch tracks for this specific playlist
+                    const tracks = await getAllItems(pl.tracks.href);
+                    
+                     Simplify data
+                    const cleanTracks = tracks.map(item = {
+                        if (!item.track) return null; 
+                        return {
+                            name item.track.name,
+                            artists item.track.artists.map(a = a.name).join(, ),
+                            album item.track.album.name,
+                            added_at item.added_at,
+                            id item.track.id,
+                            uri item.track.uri
+                        };
+                    }).filter(t = t !== null);
+
+                    allData.playlists.push({
+                        name pl.name,
+                        id pl.id,
+                        description pl.description,
+                        total_tracks cleanTracks.length,
+                        tracks cleanTracks
+                    });
+
+                    totalTracks += cleanTracks.length;
+                    document.getElementById('track-count').textContent = totalTracks;
+                    
+                     Scroll log to bottom
+                    const consoleLog = document.getElementById('console-log');
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                }
+
+                log(t('log-done'), text-green-400 font-bold);
+                
+                 Enable Download
+                const dlBtn = document.getElementById('download-btn');
+                dlBtn.disabled = false;
+                dlBtn.classList.remove('cursor-not-allowed', 'bg-white10', 'text-gray-400');
+                dlBtn.classList.add('bg-green-600', 'hoverbg-green-500', 'text-white', 'shadow-lg', 'shadow-green-50030');
+
+            } catch (error) {
+                log(t('log-error-fatal') + error.message, text-red-600 font-bold);
+                if (error.status === 401) {
+                    log(t('log-error-token'), text-red-400);
+                }
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+         Generic function to handle Spotify Pagination
+        async function getAllItems(url) {
+            let items = [];
+            let nextUrl = url;
+
+            while (nextUrl) {
+                const response = await fetch(nextUrl, {
+                    headers { 'Authorization' 'Bearer ' + accessToken }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        const retryAfter = response.headers.get('Retry-After')  2;
+                        log(t('log-rate-limit', {seconds retryAfter}), text-orange-400);
+                        await new Promise(r = setTimeout(r, retryAfter  1000));
+                        continue;
+                    }
+                    throw { message `HTTP Error ${response.status}`, status response.status };
+                }
+
+                const data = await response.json();
+                items = items.concat(data.items);
+                nextUrl = data.next; 
+            }
+            return items;
+        }
+
+         --- Export & UI Utils ---
+        function log(msg, classes = text-gray-300) {
+            const consoleDiv = document.getElementById('console-log');
+            const entry = document.createElement('div');
+            entry.className = `mb-1 ${classes}`;
+            entry.innerHTML = ` ${msg}`;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function downloadJSON() {
+            const dataStr = datatextjson;charset=utf-8, + encodeURIComponent(JSON.stringify(allData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute(href, dataStr);
+            const dateStr = new Date().toISOString().slice(0,10);
+            downloadAnchorNode.setAttribute(download, `spotify_backup_${dateStr}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            log(t('log-downloaded'), text-green-400);
+        }
+    script
+body
+html
