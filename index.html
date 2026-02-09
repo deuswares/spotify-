@@ -247,7 +247,7 @@
             <!-- Tab Content: BACKUP -->
             <div id="view-backup" class="flex-1 flex flex-col gap-4">
                 
-                <!-- NEW: Dual Stats Grid -->
+                <!-- Dual Stats Grid -->
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-white/5 rounded-2xl p-4 flex flex-col justify-between h-24 relative overflow-hidden group">
                         <div class="text-xs text-gray-400 z-10" data-i18n="stat-list">Playlists</div>
@@ -261,7 +261,7 @@
                     </div>
                 </div>
 
-                <!-- NEW: Details Button -->
+                <!-- Details Button -->
                 <button onclick="toggleDetails()" class="w-full text-xs text-gray-400 hover:text-white py-2 border-b border-white/5 hover:border-white/20 transition flex items-center justify-center gap-2">
                     <i class="fas fa-list-ul"></i> <span data-i18n="btn-details">View Details</span>
                 </button>
@@ -296,7 +296,7 @@
         </div>
     </main>
 
-    <!-- Details Modal (NEW) -->
+    <!-- Details Modal -->
     <div id="details-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 text-left" dir="ltr">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="toggleDetails()"></div>
         <div class="glass-panel w-full max-w-lg h-[70vh] flex flex-col rounded-3xl relative z-10 p-6 transform scale-95 transition-transform duration-300">
@@ -308,7 +308,6 @@
             </h2>
 
             <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="details-list">
-                <!-- List items will be injected here -->
                 <div class="text-center text-gray-500 text-sm mt-10">No data yet. Start a backup first.</div>
             </div>
             
@@ -555,15 +554,32 @@
             document.getElementById('track-count').innerText = "0";
 
             try {
+                // 1. Fetch Liked Songs (NEW)
+                log('console-backup', 'Scanning: Liked Songs...', 'info');
+                const likedTracks = await fetchAll('https://api.spotify.com/v1/me/tracks?limit=50');
+                const cleanLikedTracks = likedTracks.map(t => t.track ? t.track.uri : null).filter(uri => uri);
+                
+                // Add Liked Songs as a virtual playlist
+                if (cleanLikedTracks.length > 0) {
+                    allData.playlists.push({
+                        name: "Liked Songs (Backup)",
+                        description: "Your Liked Songs restored from backup.",
+                        tracks: cleanLikedTracks
+                    });
+                    totalTracksCount += cleanLikedTracks.length;
+                    document.getElementById('track-count').innerText = totalTracksCount;
+                    document.getElementById('playlist-count').innerText = "1"; // Start with 1
+                }
+
+                // 2. Fetch Playlists
                 const playlists = await fetchAll('https://api.spotify.com/v1/me/playlists?limit=50');
-                document.getElementById('playlist-count').innerText = playlists.length;
+                document.getElementById('playlist-count').innerText = allData.playlists.length + playlists.length; // Add standard playlists count
                 
                 for (const pl of playlists) {
                     log('console-backup', `Scanning: ${pl.name}...`);
                     const tracks = await fetchAll(pl.tracks.href);
                     const cleanTracks = tracks.map(t => t.track ? t.track.uri : null).filter(uri => uri);
                     
-                    // Update Total Tracks Real-time
                     totalTracksCount += cleanTracks.length;
                     document.getElementById('track-count').innerText = totalTracksCount;
 
