@@ -120,14 +120,32 @@
             gap: 12px;
             font-size: 14px;
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
+        .toast.show { opacity: 1; transform: translateY(0) scale(1); }
         .toast.error { border-left-color: #ef4444; }
         .toast.info { border-left-color: #3b82f6; }
 
-        /* --- Aurora Background --- */
+        /* --- Animations --- */
+        @keyframes bounce-right {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+        .firefox-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1DB954;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 0 20px rgba(29,185,84,0.5);
+            animation: bounce-right 1s infinite;
+        }
+
         .aurora {
             position: fixed; inset: 0; z-index: -1;
             background: 
@@ -148,9 +166,16 @@
 <body class="min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-300 selection:bg-green-500/30">
 
     <div class="aurora"></div>
-
-    <!-- Toast Container -->
     <div id="toast-container"></div>
+
+    <!-- Firefox Hint Overlay -->
+    <div id="firefox-hint" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col items-end justify-end p-8" onclick="this.classList.add('hidden')">
+        <div class="text-white text-right mb-4 max-w-xs">
+            <h3 class="font-bold text-xl text-[#1DB954] mb-2">Install on Firefox</h3>
+            <p class="text-sm text-gray-300">Tap the menu button (3 dots) below, then select <b class="text-white">Install</b>.</p>
+        </div>
+        <div class="firefox-hint">Tap Menu <i class="fas fa-arrow-down"></i></div>
+    </div>
 
     <!-- Navigation -->
     <nav class="absolute top-0 w-full p-6 flex justify-between items-center z-20 max-w-7xl mx-auto">
@@ -160,33 +185,20 @@
         </div>
         
         <div class="flex gap-3 relative">
-            <!-- Install PWA Button -->
             <button id="install-btn" class="glass-btn px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold hidden text-[#1DB954]">
                 <i class="fas fa-download"></i> <span data-i18n="nav-install">Install</span>
             </button>
-
-            <!-- Help Button -->
             <button onclick="toggleHelp()" class="glass-btn px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold">
                 <i class="fas fa-question-circle text-[#1DB954]"></i> <span data-i18n="nav-help">Guide</span>
             </button>
-
-            <!-- Language Toggle -->
             <div class="relative">
                 <button onclick="toggleLangMenu(event)" class="glass-btn w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-white">
                     <i class="fas fa-globe"></i>
                 </button>
-                
-                <!-- Fixed Dropdown: Compact & Tidy -->
                 <div id="lang-menu" class="absolute right-0 mt-3 w-32 glass-panel rounded-xl overflow-hidden hidden z-50 flex flex-col shadow-2xl origin-top-right transform transition-all duration-200">
-                    <button onclick="setLanguage('en')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left">
-                        <span class="w-4 text-center text-sm">🇺🇸</span> English
-                    </button>
-                    <button onclick="setLanguage('fa')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left font-fa">
-                        <span class="w-4 text-center text-sm">🇮🇷</span> فارسی
-                    </button>
-                    <button onclick="setLanguage('zh')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left font-zh">
-                        <span class="w-4 text-center text-sm">🇨🇳</span> 中文
-                    </button>
+                    <button onclick="setLanguage('en')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left"><span class="w-4 text-center text-sm">🇺🇸</span> English</button>
+                    <button onclick="setLanguage('fa')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left font-fa"><span class="w-4 text-center text-sm">🇮🇷</span> فارسی</button>
+                    <button onclick="setLanguage('zh')" class="flex items-center gap-2 px-3 py-3 hover:bg-white/5 text-xs text-gray-300 hover:text-white transition w-full text-left font-zh"><span class="w-4 text-center text-sm">🇨🇳</span> 中文</button>
                 </div>
             </div>
         </div>
@@ -201,17 +213,14 @@
                 <h1 class="text-4xl md:text-5xl font-black mb-3 tracking-tight text-white" data-i18n="hero-title" dir="auto">Spotify Backup</h1>
                 <p class="text-gray-400 text-sm md:text-base leading-relaxed" data-i18n="hero-subtitle" dir="auto">Export your library or Restore to a new account.</p>
             </div>
-
             <div class="space-y-5">
                 <div class="relative group">
                     <label class="block text-[10px] font-bold text-[#1DB954] uppercase tracking-widest mb-2 ml-1 opacity-80" data-i18n="input-label" dir="auto">Client ID</label>
                     <input type="text" id="clientId" class="glass-input w-full rounded-2xl p-4 text-white text-base placeholder:text-gray-600 placeholder:text-sm outline-none font-mono text-left" dir="ltr" placeholder="Paste Client ID...">
                     <i class="fas fa-key absolute right-5 top-[38px] text-gray-500 group-focus-within:text-[#1DB954] transition"></i>
                 </div>
-
                 <button onclick="loginSpotifyPKCE()" class="w-full bg-[#1DB954] hover:bg-[#169c46] text-black font-extrabold text-lg py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(29,185,84,0.3)] hover:shadow-[0_0_30px_rgba(29,185,84,0.5)] active:scale-[0.98] flex items-center justify-center gap-3">
-                    <span data-i18n="btn-connect">Connect Account</span>
-                    <i class="fas fa-arrow-right"></i>
+                    <span data-i18n="btn-connect">Connect Account</span> <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -226,55 +235,50 @@
                     <div class="text-[10px] text-[#1DB954] font-bold uppercase tracking-widest mb-1" data-i18n="dash-welcome">Connected As</div>
                     <div id="user-name" class="text-xl font-bold text-white truncate">User</div>
                 </div>
-                <button onclick="logout()" class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10" title="Logout">
-                    <i class="fas fa-power-off"></i>
-                </button>
+                <button onclick="logout()" class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10" title="Logout"><i class="fas fa-power-off"></i></button>
             </div>
 
             <!-- Tabs -->
             <div class="flex mb-6 border-b border-white/5 px-2">
-                <button onclick="switchTab('backup')" id="tab-backup" class="tab-btn active flex-1 pb-4 text-sm font-bold flex justify-center gap-2">
-                    <i class="fas fa-cloud-download-alt"></i> <span data-i18n="tab-backup">Backup</span>
-                </button>
-                <button onclick="switchTab('restore')" id="tab-restore" class="tab-btn flex-1 pb-4 text-sm font-bold flex justify-center gap-2">
-                    <i class="fas fa-cloud-upload-alt"></i> <span data-i18n="tab-restore">Restore</span>
-                </button>
+                <button onclick="switchTab('backup')" id="tab-backup" class="tab-btn active flex-1 pb-4 text-sm font-bold flex justify-center gap-2"><i class="fas fa-cloud-download-alt"></i> <span data-i18n="tab-backup">Backup</span></button>
+                <button onclick="switchTab('restore')" id="tab-restore" class="tab-btn flex-1 pb-4 text-sm font-bold flex justify-center gap-2"><i class="fas fa-cloud-upload-alt"></i> <span data-i18n="tab-restore">Restore</span></button>
             </div>
 
             <!-- Tab Content: BACKUP -->
             <div id="view-backup" class="flex-1 flex flex-col gap-4">
-                <div class="bg-white/5 rounded-2xl p-4 flex items-center justify-between">
-                    <div>
-                        <div class="text-xs text-gray-400" data-i18n="stat-list">Total Playlists</div>
-                        <div id="playlist-count" class="text-2xl font-bold text-white">0</div>
-                    </div>
-                    <i class="fab fa-spotify text-3xl text-white/10"></i>
-                </div>
                 
-                <div id="console-backup" class="flex-1 bg-black/40 rounded-xl p-4 font-mono text-xs text-green-400/80 border border-white/5 overflow-y-auto max-h-40 text-left" dir="ltr">
-                    >> Ready to backup...
+                <!-- NEW: Dual Stats Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white/5 rounded-2xl p-4 flex flex-col justify-between h-24 relative overflow-hidden group">
+                        <div class="text-xs text-gray-400 z-10" data-i18n="stat-list">Playlists</div>
+                        <div id="playlist-count" class="text-3xl font-bold text-white z-10 mt-auto">0</div>
+                        <i class="fab fa-spotify absolute -right-2 -bottom-4 text-6xl text-white/5 group-hover:text-white/10 transition rotate-12"></i>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-4 flex flex-col justify-between h-24 relative overflow-hidden group">
+                        <div class="text-xs text-gray-400 z-10" data-i18n="stat-tracks">Total Songs</div>
+                        <div id="track-count" class="text-3xl font-bold text-[#1DB954] z-10 mt-auto">0</div>
+                        <i class="fas fa-music absolute -right-2 -bottom-4 text-5xl text-white/5 group-hover:text-white/10 transition rotate-12"></i>
+                    </div>
                 </div>
 
+                <!-- NEW: Details Button -->
+                <button onclick="toggleDetails()" class="w-full text-xs text-gray-400 hover:text-white py-2 border-b border-white/5 hover:border-white/20 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-list-ul"></i> <span data-i18n="btn-details">View Details</span>
+                </button>
+                
+                <div id="console-backup" class="flex-1 bg-black/40 rounded-xl p-4 font-mono text-xs text-green-400/80 border border-white/5 overflow-y-auto max-h-40 text-left" dir="ltr">>> Ready to backup...</div>
+
                 <div class="flex gap-3 mt-auto">
-                    <button id="start-btn" onclick="startBackup()" class="flex-1 glass-btn py-3 rounded-xl font-bold text-sm text-white hover:bg-[#1DB954]/20 hover:border-[#1DB954] transition">
-                        <span data-i18n="btn-start">Start Backup</span>
-                    </button>
-                    <button id="download-btn" onclick="downloadJSON()" class="flex-1 bg-white/5 text-gray-500 py-3 rounded-xl font-bold text-sm cursor-not-allowed border border-transparent transition" disabled>
-                        <span data-i18n="btn-download">Download JSON</span>
-                    </button>
+                    <button id="start-btn" onclick="startBackup()" class="flex-1 glass-btn py-3 rounded-xl font-bold text-sm text-white hover:bg-[#1DB954]/20 hover:border-[#1DB954] transition"><span data-i18n="btn-start">Start Backup</span></button>
+                    <button id="download-btn" onclick="downloadJSON()" class="flex-1 bg-white/5 text-gray-500 py-3 rounded-xl font-bold text-sm cursor-not-allowed border border-transparent transition" disabled><span data-i18n="btn-download">Download JSON</span></button>
                 </div>
             </div>
 
             <!-- Tab Content: RESTORE -->
             <div id="view-restore" class="hidden flex-1 flex flex-col gap-4">
                 <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                    <p class="text-[11px] text-yellow-200/80 leading-relaxed" data-i18n="restore-warn" dir="auto">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                        Restoration creates new playlists. It may take time due to Spotify limits. Keep this tab open.
-                    </p>
+                    <p class="text-[11px] text-yellow-200/80 leading-relaxed" data-i18n="restore-warn" dir="auto"><i class="fas fa-exclamation-triangle mr-1"></i> Restoration creates new playlists. It may take time due to Spotify limits. Keep this tab open.</p>
                 </div>
-
-                <!-- File Upload Area -->
                 <div class="relative border-2 border-dashed border-white/10 rounded-2xl p-6 text-center hover:border-[#1DB954]/50 transition cursor-pointer group" onclick="document.getElementById('file-upload').click()">
                     <input type="file" id="file-upload" accept=".json" class="hidden" onchange="handleFileSelect(event)">
                     <div id="upload-placeholder">
@@ -286,64 +290,53 @@
                         <div id="filename-display" class="text-xs text-white font-bold truncate">filename.json</div>
                     </div>
                 </div>
-
-                <div id="console-restore" class="flex-1 bg-black/40 rounded-xl p-4 font-mono text-xs text-blue-400/80 border border-white/5 overflow-y-auto max-h-40 text-left" dir="ltr">
-                    >> Waiting for file...
-                </div>
-
-                <button id="restore-btn" onclick="startRestore()" class="w-full bg-white/5 text-gray-500 py-4 rounded-xl font-bold text-sm cursor-not-allowed transition" disabled>
-                    <span data-i18n="btn-start-restore">Start Restoration</span>
-                </button>
+                <div id="console-restore" class="flex-1 bg-black/40 rounded-xl p-4 font-mono text-xs text-blue-400/80 border border-white/5 overflow-y-auto max-h-40 text-left" dir="ltr">>> Waiting for file...</div>
+                <button id="restore-btn" onclick="startRestore()" class="w-full bg-white/5 text-gray-500 py-4 rounded-xl font-bold text-sm cursor-not-allowed transition" disabled><span data-i18n="btn-start-restore">Start Restoration</span></button>
             </div>
-
         </div>
     </main>
+
+    <!-- Details Modal (NEW) -->
+    <div id="details-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 text-left" dir="ltr">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="toggleDetails()"></div>
+        <div class="glass-panel w-full max-w-lg h-[70vh] flex flex-col rounded-3xl relative z-10 p-6 transform scale-95 transition-transform duration-300">
+            <button onclick="toggleDetails()" class="absolute top-6 right-6 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-list-ul text-[#1DB954]"></i>
+                <span data-i18n="details-title">Backup Details</span>
+            </h2>
+
+            <div class="flex-1 overflow-y-auto pr-2 space-y-2" id="details-list">
+                <!-- List items will be injected here -->
+                <div class="text-center text-gray-500 text-sm mt-10">No data yet. Start a backup first.</div>
+            </div>
+            
+            <button onclick="toggleDetails()" class="w-full mt-4 glass-btn py-3 rounded-xl font-bold text-sm text-white">Close</button>
+        </div>
+    </div>
 
     <!-- Help Modal -->
     <div id="help-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 text-left" dir="ltr">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="toggleHelp()"></div>
         <div class="glass-panel w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl relative z-10 p-8 transform scale-95 transition-transform duration-300">
             <button onclick="toggleHelp()" class="absolute top-6 right-6 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
-            
-            <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                <i class="fas fa-book text-[#1DB954]"></i>
-                <span data-i18n="guide-title">Setup Guide</span>
-            </h2>
-
-            <div class="space-y-6 relative">
-                <!-- Step 1 -->
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><i class="fas fa-book text-[#1DB954]"></i><span data-i18n="guide-title">Setup Guide</span></h2>
+            <div class="space-y-6 relative mb-8">
+                <!-- Steps (Same as before) -->
                 <div class="flex gap-4">
                     <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-sm border border-[#1DB954]/30">1</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-sm mb-1 text-white">Dashboard</h3>
-                        <p class="text-gray-400 text-xs mb-2">Create an App in Spotify Developer Dashboard.</p>
-                        <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-[#1DB954] text-xs font-bold hover:underline">Open Dashboard <i class="fas fa-external-link-alt text-[10px]"></i></a>
-                    </div>
+                    <div class="flex-1"><h3 class="font-bold text-sm mb-1 text-white">Dashboard</h3><p class="text-gray-400 text-xs mb-2">Create App in Developer Dashboard.</p><a href="https://developer.spotify.com/dashboard" target="_blank" class="text-[#1DB954] text-xs font-bold hover:underline">Open Dashboard <i class="fas fa-external-link-alt text-[10px]"></i></a></div>
                 </div>
-
-                <!-- Step 2 -->
                 <div class="flex gap-4">
                     <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-sm border border-[#1DB954]/30">2</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-sm mb-1 text-white">Redirect URI</h3>
-                        <p class="text-gray-400 text-xs mb-2">Paste this URL into App Settings:</p>
-                        <div class="relative">
-                            <code id="redirect-display" class="block w-full bg-black/50 border border-white/10 rounded-lg p-3 font-mono text-[10px] text-gray-300 break-all">...</code>
-                            <button onclick="copyRedirect()" class="absolute right-2 top-2 text-white/50 hover:text-white"><i class="fas fa-copy"></i></button>
-                        </div>
-                    </div>
+                    <div class="flex-1"><h3 class="font-bold text-sm mb-1 text-white">Redirect URI</h3><p class="text-gray-400 text-xs mb-2">Paste this URL into App Settings:</p><div class="relative"><code id="redirect-display" class="block w-full bg-black/50 border border-white/10 rounded-lg p-3 font-mono text-[10px] text-gray-300 break-all">...</code><button onclick="copyRedirect()" class="absolute right-2 top-2 text-white/50 hover:text-white"><i class="fas fa-copy"></i></button></div></div>
                 </div>
-
-                <!-- Step 3 -->
                 <div class="flex gap-4">
                     <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-bold text-sm border border-[#1DB954]/30">3</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-sm mb-1 text-white">Client ID</h3>
-                        <p class="text-gray-400 text-xs">Copy Client ID and paste it in the login screen.</p>
-                    </div>
+                    <div class="flex-1"><h3 class="font-bold text-sm mb-1 text-white">Client ID</h3><p class="text-gray-400 text-xs">Copy Client ID and paste in login.</p></div>
                 </div>
             </div>
-            
             <button onclick="toggleHelp()" class="w-full mt-8 glass-btn py-3 rounded-xl font-bold text-sm text-white">Close Guide</button>
         </div>
     </div>
@@ -356,33 +349,36 @@
                 'hero-title': 'Spotify Backup', 'hero-subtitle': 'Export your library or Restore to a new account.',
                 'input-label': 'Client ID', 'btn-connect': 'Connect Account',
                 'dash-welcome': 'Connected As', 'tab-backup': 'Backup', 'tab-restore': 'Restore',
-                'stat-list': 'Total Playlists', 'btn-start': 'Start Backup', 'btn-download': 'Download JSON',
+                'stat-list': 'Total Playlists', 'stat-tracks': 'Total Songs',
+                'btn-start': 'Start Backup', 'btn-download': 'Download JSON', 'btn-details': 'View Details',
                 'restore-warn': 'Restoration creates new playlists. It may take time due to Spotify API limits. Do not close this tab.',
                 'upload-text': 'Click to upload JSON file', 'btn-start-restore': 'Start Restoration',
-                'guide-title': 'Setup Guide', 'err-no-client': 'Please enter your Client ID',
-                'copied': 'Copied to clipboard!', 'login-err': 'Login Error. Check Client ID.'
+                'guide-title': 'Setup Guide', 'details-title': 'Backup Details',
+                'err-no-client': 'Please enter your Client ID', 'copied': 'Copied to clipboard!', 'login-err': 'Login Error. Check Client ID.'
             },
             fa: {
                 'nav-install': 'نصب برنامه', 'nav-help': 'راهنما',
                 'hero-title': 'پشتیبان‌گیری اسپاتیفای', 'hero-subtitle': 'دریافت خروجی یا بازیابی در اکانت جدید.',
                 'input-label': 'شناسه کلاینت (Client ID)', 'btn-connect': 'اتصال حساب',
                 'dash-welcome': 'متصل شده با', 'tab-backup': 'بکاپ‌گیری', 'tab-restore': 'بازیابی',
-                'stat-list': 'تعداد پلی‌لیست', 'btn-start': 'شروع بکاپ', 'btn-download': 'دانلود JSON',
+                'stat-list': 'تعداد پلی‌لیست', 'stat-tracks': 'تعداد آهنگ‌ها',
+                'btn-start': 'شروع بکاپ', 'btn-download': 'دانلود JSON', 'btn-details': 'مشاهده لیست',
                 'restore-warn': 'بازیابی باعث ساخت پلی‌لیست‌های جدید می‌شود. به دلیل محدودیت اسپاتیفای ممکن است زمان‌بر باشد.',
                 'upload-text': 'برای انتخاب فایل JSON کلیک کنید', 'btn-start-restore': 'شروع عملیات بازیابی',
-                'guide-title': 'راهنمای راه‌اندازی', 'err-no-client': 'لطفاً شناسه کلاینت (Client ID) را وارد کنید',
-                'copied': 'کپی شد!', 'login-err': 'خطا در ورود. شناسه کلاینت را چک کنید.'
+                'guide-title': 'راهنمای راه‌اندازی', 'details-title': 'جزئیات پلی‌لیست‌ها',
+                'err-no-client': 'لطفاً شناسه کلاینت (Client ID) را وارد کنید', 'copied': 'کپی شد!', 'login-err': 'خطا در ورود. شناسه کلاینت را چک کنید.'
             },
             zh: {
                 'nav-install': '安装应用', 'nav-help': '指南',
                 'hero-title': 'Spotify 备份', 'hero-subtitle': '导出您的音乐库或恢复到新帐户。',
                 'input-label': '客户端 ID', 'btn-connect': '连接帐户',
                 'dash-welcome': '已连接', 'tab-backup': '备份', 'tab-restore': '恢复',
-                'stat-list': '播放列表总数', 'btn-start': '开始备份', 'btn-download': '下载 JSON',
+                'stat-list': '播放列表总数', 'stat-tracks': '歌曲总数',
+                'btn-start': '开始备份', 'btn-download': '下载 JSON', 'btn-details': '查看详情',
                 'restore-warn': '恢复将创建新的播放列表。由于 Spotify 限制，可能需要一些时间。',
                 'upload-text': '点击上传 JSON 文件', 'btn-start-restore': '开始恢复',
-                'guide-title': '设置指南', 'err-no-client': '请输入您的客户端 ID',
-                'copied': '已复制！', 'login-err': '登录错误。检查客户端 ID。'
+                'guide-title': '设置指南', 'details-title': '备份详情',
+                'err-no-client': '请输入您的客户端 ID', 'copied': '已复制！', 'login-err': '登录错误。检查客户端 ID。'
             }
         };
 
@@ -391,114 +387,115 @@
         let allData = { user: {}, playlists: [] };
         let restoreData = null;
 
-        // --- CORE UI ---
         const getRedirectUri = () => window.location.href.split('?')[0].split('#')[0];
 
         window.onload = async () => {
             setLanguage(currentLang);
             document.getElementById('redirect-display').textContent = getRedirectUri();
             
-            // Language Menu Click Outside
             window.addEventListener('click', (e) => {
                 const menu = document.getElementById('lang-menu');
                 const btn = e.target.closest('button[onclick*="toggleLangMenu"]');
                 if (!btn && !menu.contains(e.target)) menu.classList.add('hidden');
             });
 
-            // Restore Client ID
             const savedId = localStorage.getItem('sp_client_id');
             if(savedId) document.getElementById('clientId').value = savedId;
 
-            // Auth Check
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
             if (code) await handleAuthCode(code);
 
-            // PWA Logic
+            const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            const installBtn = document.getElementById('install-btn');
+            if (isFirefox) {
+                installBtn.classList.remove('hidden');
+                installBtn.onclick = () => { document.getElementById('firefox-hint').classList.remove('hidden'); };
+            }
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
-                const btn = document.getElementById('install-btn');
-                btn.classList.remove('hidden');
-                btn.onclick = () => { e.prompt(); };
+                installBtn.classList.remove('hidden');
+                installBtn.onclick = () => { e.prompt(); };
             });
         };
 
-        function toggleLangMenu(e) {
-            e.stopPropagation();
-            document.getElementById('lang-menu').classList.toggle('hidden');
-        }
+        function toggleLangMenu(e) { e.stopPropagation(); document.getElementById('lang-menu').classList.toggle('hidden'); }
 
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('sp_lang', lang);
             document.documentElement.lang = lang;
             document.getElementById('lang-menu').classList.add('hidden');
-
             document.body.classList.remove('font-fa', 'font-zh');
             if(lang === 'fa') document.body.classList.add('font-fa');
             if(lang === 'zh') document.body.classList.add('font-zh');
-
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if(translations[lang][key]) el.innerText = translations[lang][key];
             });
         }
 
-        // --- TOAST SYSTEM (New Feature) ---
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
             let icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
-            
-            toast.innerHTML = `
-                <i class="fas ${icon}"></i>
-                <span>${message}</span>
-            `;
-            
+            toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
             container.appendChild(toast);
-            
-            // Trigger animation
             requestAnimationFrame(() => toast.classList.add('show'));
-            
-            // Remove after 3s
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
         function toggleHelp() {
             const modal = document.getElementById('help-modal');
             const content = modal.querySelector('.glass-panel');
-            if(modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                setTimeout(() => content.classList.replace('scale-95','scale-100'), 10);
-            } else {
-                content.classList.replace('scale-100','scale-95');
-                setTimeout(() => modal.classList.add('hidden'), 200);
+            if(modal.classList.contains('hidden')) { modal.classList.remove('hidden'); setTimeout(() => content.classList.replace('scale-95','scale-100'), 10); } 
+            else { content.classList.replace('scale-100','scale-95'); setTimeout(() => modal.classList.add('hidden'), 200); }
+        }
+
+        function toggleDetails() {
+            const modal = document.getElementById('details-modal');
+            const content = modal.querySelector('.glass-panel');
+            const list = document.getElementById('details-list');
+            
+            if(modal.classList.contains('hidden')) { 
+                // Render List
+                if(allData.playlists.length > 0) {
+                    list.innerHTML = allData.playlists.map(pl => `
+                        <div class="glass-btn p-3 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <div class="w-8 h-8 rounded-full bg-[#1DB954]/20 flex items-center justify-center text-[#1DB954] text-xs font-bold">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                                <div class="truncate text-sm font-bold">${pl.name}</div>
+                            </div>
+                            <div class="text-xs text-gray-400 font-mono bg-black/30 px-2 py-1 rounded">${pl.tracks.length}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = `<div class="text-center text-gray-500 text-sm mt-10">No data found.</div>`;
+                }
+
+                modal.classList.remove('hidden'); 
+                setTimeout(() => content.classList.replace('scale-95','scale-100'), 10); 
+            } 
+            else { 
+                content.classList.replace('scale-100','scale-95'); 
+                setTimeout(() => modal.classList.add('hidden'), 200); 
             }
         }
         
-        function copyRedirect() {
-            navigator.clipboard.writeText(getRedirectUri());
-            showToast(translations[currentLang]['copied'], 'info');
-        }
+        function copyRedirect() { navigator.clipboard.writeText(getRedirectUri()); showToast(translations[currentLang]['copied'], 'info'); }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
-            
             document.getElementById('view-backup').classList.add('hidden');
             document.getElementById('view-restore').classList.add('hidden');
             document.getElementById(`view-${tab}`).classList.remove('hidden');
         }
 
-        function logout() {
-            localStorage.removeItem('sp_client_id');
-            window.location.href = getRedirectUri();
-        }
+        function logout() { localStorage.removeItem('sp_client_id'); window.location.href = getRedirectUri(); }
 
         function log(target, msg, type = 'info') {
             const el = document.getElementById(target);
@@ -509,25 +506,15 @@
             el.scrollTop = el.scrollHeight;
         }
 
-        // --- AUTH (PKCE) ---
         const SCOPES = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read playlist-modify-public playlist-modify-private';
 
         async function loginSpotifyPKCE() {
             const clientId = document.getElementById('clientId').value.trim();
-            
-            // Check Empty Input & Show Toast
-            if(!clientId) {
-                showToast(translations[currentLang]['err-no-client'], 'error');
-                document.getElementById('clientId').focus();
-                return;
-            }
-            
+            if(!clientId) { showToast(translations[currentLang]['err-no-client'], 'error'); document.getElementById('clientId').focus(); return; }
             localStorage.setItem('sp_client_id', clientId);
-
             const verifier = generateRandomString(128);
             const challenge = await generateCodeChallenge(verifier);
             localStorage.setItem('pkce_verifier', verifier);
-
             const url = `https://accounts.spotify.com/authorize?response_type=code&client_id=${clientId}&scope=${encodeURIComponent(SCOPES)}&redirect_uri=${encodeURIComponent(getRedirectUri())}&code_challenge_method=S256&code_challenge=${challenge}`;
             window.location.href = url;
         }
@@ -535,94 +522,72 @@
         async function handleAuthCode(code) {
             window.history.replaceState({}, document.title, window.location.pathname);
             document.getElementById('connect-view').classList.add('hidden');
-            
             const clientId = localStorage.getItem('sp_client_id');
             const verifier = localStorage.getItem('pkce_verifier');
-
             try {
                 const res = await fetch('https://accounts.spotify.com/api/token', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: new URLSearchParams({
-                        client_id: clientId, grant_type: 'authorization_code',
-                        code: code, redirect_uri: getRedirectUri(), code_verifier: verifier
-                    })
+                    body: new URLSearchParams({ client_id: clientId, grant_type: 'authorization_code', code: code, redirect_uri: getRedirectUri(), code_verifier: verifier })
                 });
-
                 if(!res.ok) throw new Error('Token Failed');
                 const data = await res.json();
                 accessToken = data.access_token;
-
-                // Load User
                 const uRes = await fetch('https://api.spotify.com/v1/me', { headers: { 'Authorization': 'Bearer ' + accessToken } });
                 const user = await uRes.json();
                 allData.user = user;
-
                 document.getElementById('dashboard-view').classList.remove('hidden');
                 document.getElementById('user-name').innerText = user.display_name;
-                if(user.images?.[0]) {
-                    document.getElementById('user-avatar').src = user.images[0].url;
-                    document.getElementById('user-avatar').classList.remove('hidden');
-                }
-
+                if(user.images?.[0]) { document.getElementById('user-avatar').src = user.images[0].url; document.getElementById('user-avatar').classList.remove('hidden'); }
             } catch (e) {
-                console.error(e);
-                showToast(translations[currentLang]['login-err'], 'error');
-                document.getElementById('connect-view').classList.remove('hidden');
+                console.error(e); showToast(translations[currentLang]['login-err'], 'error'); document.getElementById('connect-view').classList.remove('hidden');
             }
         }
 
-        // --- BACKUP LOGIC ---
         async function startBackup() {
             const btn = document.getElementById('start-btn');
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
+            btn.disabled = true; btn.classList.add('opacity-50');
             log('console-backup', 'Starting backup...');
+            
+            // Reset counts
+            allData.playlists = [];
+            let totalTracksCount = 0;
+            document.getElementById('track-count').innerText = "0";
 
             try {
-                // 1. Playlists
                 const playlists = await fetchAll('https://api.spotify.com/v1/me/playlists?limit=50');
                 document.getElementById('playlist-count').innerText = playlists.length;
                 
-                // 2. Tracks
                 for (const pl of playlists) {
                     log('console-backup', `Scanning: ${pl.name}...`);
                     const tracks = await fetchAll(pl.tracks.href);
-                    
                     const cleanTracks = tracks.map(t => t.track ? t.track.uri : null).filter(uri => uri);
                     
+                    // Update Total Tracks Real-time
+                    totalTracksCount += cleanTracks.length;
+                    document.getElementById('track-count').innerText = totalTracksCount;
+
                     allData.playlists.push({
                         name: pl.name,
                         description: pl.description || "Restored by Backup Pro",
                         tracks: cleanTracks
                     });
                 }
-                
                 log('console-backup', 'Backup Complete!');
                 const dlBtn = document.getElementById('download-btn');
-                dlBtn.disabled = false;
-                dlBtn.classList.remove('cursor-not-allowed', 'bg-white/5', 'text-gray-500');
-                dlBtn.classList.add('bg-[#1DB954]', 'text-black', 'shadow-lg');
+                dlBtn.disabled = false; dlBtn.classList.remove('cursor-not-allowed', 'bg-white/5', 'text-gray-500'); dlBtn.classList.add('bg-[#1DB954]', 'text-black', 'shadow-lg');
                 btn.disabled = false; btn.classList.remove('opacity-50');
-
-            } catch (e) {
-                log('console-backup', 'Error: ' + e.message, 'error');
-            }
+            } catch (e) { log('console-backup', 'Error: ' + e.message, 'error'); }
         }
 
         function downloadJSON() {
             const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `spotify_backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `spotify_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
         }
 
-        // --- RESTORE LOGIC ---
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if(!file) return;
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -630,19 +595,11 @@
                     document.getElementById('upload-placeholder').classList.add('hidden');
                     document.getElementById('file-info').classList.remove('hidden');
                     document.getElementById('filename-display').innerText = file.name;
-                    
                     const plCount = restoreData.playlists?.length || 0;
                     log('console-restore', `File loaded. Found ${plCount} playlists.`);
-                    
                     const btn = document.getElementById('restore-btn');
-                    btn.disabled = false;
-                    btn.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed');
-                    btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500');
-                    btn.innerText = `Restore ${plCount} Playlists`;
-
-                } catch (err) {
-                    showToast("Invalid JSON file", 'error');
-                }
+                    btn.disabled = false; btn.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed'); btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500'); btn.innerText = `Restore ${plCount} Playlists`;
+                } catch (err) { showToast("Invalid JSON file", 'error'); }
             };
             reader.readAsText(file);
         }
@@ -650,40 +607,20 @@
         async function startRestore() {
             if(!restoreData || !restoreData.playlists) return;
             const btn = document.getElementById('restore-btn');
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-
+            btn.disabled = true; btn.classList.add('opacity-50');
             const userId = allData.user.id;
             let count = 0;
-
             for (const pl of restoreData.playlists) {
                 count++;
                 log('console-restore', `[${count}/${restoreData.playlists.length}] Creating: ${pl.name}...`);
-                
                 try {
-                    // 1. Create Playlist
                     const createRes = await fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, {
                         method: 'POST',
                         headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            name: pl.name,
-                            description: pl.description + " (Restored)",
-                            public: false
-                        })
+                        body: JSON.stringify({ name: pl.name, description: pl.description + " (Restored)", public: false })
                     });
-
-                    if(!createRes.ok) {
-                         if(createRes.status === 429) {
-                            log('console-restore', 'Rate Limit! Waiting 5s...', 'error');
-                            await new Promise(r => setTimeout(r, 5000));
-                            continue;
-                         }
-                         throw new Error('Create failed');
-                    }
-
+                    if(!createRes.ok) { if(createRes.status === 429) { log('console-restore', 'Rate Limit! Waiting 5s...', 'error'); await new Promise(r => setTimeout(r, 5000)); continue; } throw new Error('Create failed'); }
                     const newPl = await createRes.json();
-
-                    // 2. Add Tracks (Batch of 100)
                     const uris = pl.tracks;
                     if(uris && uris.length > 0) {
                         for (let i = 0; i < uris.length; i += 100) {
@@ -698,27 +635,18 @@
                     }
                     log('console-restore', `Done: ${pl.name} (${uris.length} tracks)`);
                     await new Promise(r => setTimeout(r, 1000));
-
-                } catch (err) {
-                    log('console-restore', `Failed: ${pl.name} - ${err.message}`, 'error');
-                }
+                } catch (err) { log('console-restore', `Failed: ${pl.name} - ${err.message}`, 'error'); }
             }
-            
             log('console-restore', '--- RESTORE COMPLETE ---');
             btn.innerText = "Restoration Finished";
         }
 
-        // --- UTILS ---
         async function fetchAll(url) {
             let items = [];
             let next = url;
             while(next) {
                 const res = await fetch(next, { headers: { 'Authorization': 'Bearer ' + accessToken } });
-                if(res.status === 429) {
-                    const w = res.headers.get('Retry-After') || 2;
-                    await new Promise(r => setTimeout(r, w * 1000));
-                    continue;
-                }
+                if(res.status === 429) { const w = res.headers.get('Retry-After') || 2; await new Promise(r => setTimeout(r, w * 1000)); continue; }
                 const d = await res.json();
                 items.push(...d.items);
                 next = d.next;
