@@ -1,5 +1,5 @@
 {
-  "name": "Spotify Backup Pro",
+  "name": "Spotify Backup",
   "short_name": "BackupPro",
   "start_url": "./index.html",
   "display": "standalone",
