@@ -1,6 +1,6 @@
 {
-  "name": "Spotify Backup",
-  "short_name": "BackupPro",
+  "name": "Spotify Backup Pro",
+  "short_name": "SpotifyBackup",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
